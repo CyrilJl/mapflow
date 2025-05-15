@@ -1,0 +1,15 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "xrviz"
+version = "0.1.0"
+description = "A Python library to export xarray.DataArray as MP4 videos."
+authors = [{ name = "Cyril Joly" }]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.8"
+
+
+dependencies = ["xarray", "matplotlib", "ffmpeg", "geopandas", "tqdm"]
