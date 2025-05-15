@@ -18,13 +18,13 @@ jobs:
         with:
           auto-update-conda: true
           python-version: "3.12" # Vous pouvez changer cette version de Python si besoin
-          channels: conda-forge,defaults
+          channels: conda-forge
           channel-priority: strict
 
       - name: Install dependencies
         shell: bash -l {0} # Nécessaire pour que l'environnement conda soit correctement activé
         run: |
-          conda install --yes pytest xarray matplotlib geopandas tqdm ffmpeg pooch
+          mamba install --yes pytest xarray matplotlib geopandas tqdm ffmpeg pooch
 
       - name: Install package
         shell: bash -l {0} # Assure que l'environnement conda est actif
