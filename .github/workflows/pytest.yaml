@@ -1,8 +1,7 @@
 name: Python Tests
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
   pull_request:
     branches: [main]
 
@@ -26,6 +25,11 @@ jobs:
         shell: bash -l {0} # Nécessaire pour que l'environnement conda soit correctement activé
         run: |
           conda install --yes pytest xarray matplotlib geopandas tqdm ffmpeg pooch
+
+      - name: Install package
+        shell: bash -l {0} # Assure que l'environnement conda est actif
+        run: |
+          pip install -e .  # Installe le package dans le répertoire courant en mode editable
 
       - name: Run pytest
         shell: bash -l {0} # Assure que l'environnement conda est actif
