@@ -104,6 +104,8 @@ class Animation:
             if len(title) != len(data):
                 raise ValueError()
 
+        norm = self.plot._norm(data, vmin, vmax, qmin, qmax, norm, log)
+
         if upsample_ratio > 1:
             data = self.upsample(data, ratio=upsample_ratio)
             titles = [None for _ in range(len(data))] if title is None else np.repeat(title, upsample_ratio)
@@ -122,11 +124,6 @@ class Animation:
                     titles[k],
                     cmap,
                     norm,
-                    vmin,
-                    vmax,
-                    qmin,
-                    qmax,
-                    log,
                     label,
                     dpi,
                 )
@@ -149,18 +146,13 @@ class Animation:
 
     def _generate_frame(self, args):
         """Generates a frame and saves it as a PNG."""
-        data_frame, frame_path, figsize, title, cmap, norm, vmin, vmax, qmin, qmax, log, label, dpi = args
+        data_frame, frame_path, figsize, title, cmap, norm, label, dpi = args
         self.plot(
             data=data_frame,
             figsize=figsize,
             title=title,
             show=False,
             cmap=cmap,
-            vmin=vmin,
-            vmax=vmax,
-            qmin=qmin,
-            qmax=qmax,
-            log=log,
             norm=norm,
             label=label,
         )
