@@ -13,5 +13,4 @@ from xrviz import animate
 ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
 animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4')
 ```
-
-https://github.com/user-attachments/assets/5e9c75a0-f0e0-4b0d-9420-292f8703d1c7
+https://raw.githubusercontent.com/CyrilJl/xrviz/main/_static/animation.mp4
