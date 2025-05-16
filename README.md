@@ -10,6 +10,6 @@
 import xarray as xr
 from xrviz import animate
 
-ds = xr.tutorial.open_dataset("air_temperature")
-animate(da=ds['air'].isel(time=slice(120)), path='animation.mp4')
+ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
+animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4')
 ```
