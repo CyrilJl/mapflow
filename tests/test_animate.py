@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 import pytest
 import xarray as xr
 
-from xrviz import animate
+from mapflow import animate
 
 
 @pytest.fixture
