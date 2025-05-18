@@ -62,6 +62,7 @@ class Animation:
         label=None,
         dpi=180,
         n_jobs=None,
+        timeout="auto",
     ):
         """
         Generates an animation from a sequence of 2D data arrays.
@@ -142,7 +143,9 @@ class Animation:
                     )
                 )
 
-            self._create_video(tempdir, path, fps)
+            if timeout == "auto":
+                timeout = min(10, 0.1 * len(data))
+            self._create_video(tempdir, path, fps, timeout=timeout)
 
     def _generate_frame(self, args):
         """Generates a frame and saves it as a PNG."""
@@ -160,7 +163,7 @@ class Animation:
         plt.clf()
         plt.close()
 
-    def _create_video(self, tempdir, path, fps):
+    def _create_video(self, tempdir, path, fps, timeout):
         cmd = [
             "ffmpeg",
             "-y",
@@ -183,7 +186,7 @@ class Animation:
                 text=True,  # Captures the output as text
                 stdout=subprocess.PIPE,  # Captures standard output
                 stderr=subprocess.PIPE,  # Captures standard error
-                timeout=30,
+                timeout=timeout,
             )
             print(result.stdout)  # Optional: display standard output
         except subprocess.CalledProcessError as e:
@@ -266,7 +269,7 @@ def animate(
     animation = Animation(x=da[x_name], y=da[y_name], crs=crs_, verbose=verbose, borders=borders)
     path = Path(path)
     path.parent.mkdir(exist_ok=True, parents=True)
-    unit = da.attrs.get("units", None)
+    unit = da.attrs.get("unit", None) or da.attrs.get("units", None)
     time = da[time_name].dt.strftime(time_format).values
     field = da.name
     titles = [f"{field} · {t}" for t in time]
