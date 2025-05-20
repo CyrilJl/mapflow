@@ -1,8 +1,10 @@
 import os
 from tempfile import TemporaryDirectory
 
+import geopandas as gpd
 import pytest
 import xarray as xr
+from shapely.geometry import box
 
 from mapflow import animate
 
@@ -108,6 +110,21 @@ def test_animate_fps(air_data):
             x_name="lon",
             y_name="lat",
             fps=10,  # Example fps
+            verbose=True,
+        )
+        assert os.path.exists(output_path)
+
+
+def test_animate_borders(air_data):
+    borders = gpd.GeoSeries([box(-2, 42, 8, 50)], crs=4326)
+    with TemporaryDirectory() as tmpdir:
+        output_path = f"{tmpdir}/test_animation_fps.mp4"
+        animate(
+            da=air_data,
+            path=output_path,
+            x_name="lon",
+            y_name="lat",
+            borders=borders,
             verbose=True,
         )
         assert os.path.exists(output_path)
