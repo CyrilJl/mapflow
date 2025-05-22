@@ -13,3 +13,6 @@ requires-python = ">=3.8"
 
 
 dependencies = ["xarray", "matplotlib", "geopandas", "tqdm"]
+
+[project.urls]
+Homepage = "https://github.com/CyrilJl/mapflow"
