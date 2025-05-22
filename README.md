@@ -4,6 +4,12 @@
 
 ``mapflow`` transforms 3D ``xr.DataArray`` in video files in one code line. It relies on ``matplotlib`` and ``ffmpeg``. Make sure ``ffmpeg`` is installed on your system.
 
+## Installation
+
+```bash
+pip install mapflow
+```
+
 ## Usage
 
 ```python
