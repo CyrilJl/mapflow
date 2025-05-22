@@ -1,5 +1,6 @@
 # mapflow
 
+[![PyPI version](https://badge.fury.io/py/mapflow.svg)](https://badge.fury.io/py/mapflow)
 [![Run Pytest](https://github.com/CyrilJl/mapflow/actions/workflows/pytest.yaml/badge.svg)](https://github.com/CyrilJl/mapflow/actions/workflows/pytest.yaml)
 
 ``mapflow`` transforms 3D ``xr.DataArray`` in video files in one code line. It relies on ``matplotlib`` and ``ffmpeg``. Make sure ``ffmpeg`` is installed on your system.
