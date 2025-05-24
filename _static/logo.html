@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script>
+</head>
+<body>
+  <svg id="canvas" width="500" height="500"></svg>
+  <script>
+    const svg = d3.select("#canvas");
+    const width = +svg.attr("width");
+    const height = +svg.attr("height");
+
+    // Generate random moving points
+    let points = Array.from({ length: 20 }, () => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 2,
+      vy: (Math.random() - 0.5) * 2
+    }));
+
+    // Draw initial points and triangulation
+    const pointElements = svg.selectAll("circle")
+      .data(points)
+      .enter()
+      .append("circle")
+      .attr("r", 3)
+      .attr("fill", "red");
+
+    let delaunayGroup = svg.append("g");
+
+    function updateDelaunay() {
+      // Update point positions
+      points.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        // Bounce off walls
+        if (p.x <= 0 || p.x >= width) p.vx *= -1;
+        if (p.y <= 0 || p.y >= height) p.vy *= -1;
+      });
+
+      // Update point display
+      pointElements
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+
+      // Compute Delaunay triangulation
+      const delaunay = d3.Delaunay.from(points, d => d.x, d => d.y);
+      const voronoi = delaunay.voronoi([0, 0, width, height]);
+
+      // Clear old edges
+      delaunayGroup.selectAll("*").remove();
+
+      // Draw new edges
+      delaunayGroup
+        .selectAll("path")
+        .data(delaunay.trianglePolygons())
+        .enter()
+        .append("path")
+        .attr("d", d => `M${d.join("L")}Z`)
+        .attr("fill", "none")
+        .attr("stroke", "blue")
+        .attr("stroke-width", 1);
+
+      requestAnimationFrame(updateDelaunay);
+    }
+
+    updateDelaunay();
+  </script>
+</body>
+</html>
