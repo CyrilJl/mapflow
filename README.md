@@ -1,5 +1,5 @@
 <div align="center">
-<img src="_static/logo.svg" alt="mapflow logo" width="50" height="50" align="left">
+<img src="_static/logo.svg" alt="mapflow logo" width="200" height="200">
 </div>
 
 # mapflow
