@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="600" height="600" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="300.0" cy="300.0" r="300.0" fill="#111111" />
+
+    <path d="M292.79,276.95 L285.04,281.20 L280.79,288.95 L276.55,281.20 L268.79,276.95 L276.55,272.71 L280.79,264.95 L285.04,272.71 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="230.19 300.00 300.00"
+            to="590.19 300.00 300.00"
+            dur="4.65s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+
+    <path d="M303.39,354.32 L295.63,358.56 L291.39,366.32 L287.14,358.56 L279.39,354.32 L287.14,350.08 L291.39,342.32 L295.63,350.08 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="99.01 300.00 300.00"
+            to="459.01 300.00 300.00"
+            dur="9.80s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+
+    <path d="M305.21,220.29 L297.45,224.53 L293.21,232.29 L288.97,224.53 L281.21,220.29 L288.97,216.05 L293.21,208.29 L297.45,216.05 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="265.13 300.00 300.00"
+            to="625.13 300.00 300.00"
+            dur="21.59s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+
+    <path d="M393.81,234.18 L386.06,238.43 L381.81,246.18 L377.57,238.43 L369.81,234.18 L377.57,229.94 L381.81,222.18 L386.06,229.94 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="321.18 300.00 300.00"
+            to="681.18 300.00 300.00"
+            dur="6.26s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+
+    <path d="M197.33,361.25 L189.57,365.49 L185.33,373.25 L181.09,365.49 L173.33,361.25 L181.09,357.01 L185.33,349.25 L189.57,357.01 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="151.89 300.00 300.00"
+            to="511.89 300.00 300.00"
+            dur="4.77s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+
+    <path d="M342.35,452.00 L334.59,456.24 L330.35,464.00 L326.10,456.24 L318.35,452.00 L326.10,447.76 L330.35,440.00 L334.59,447.76 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="78.71 300.00 300.00"
+            to="438.71 300.00 300.00"
+            dur="17.14s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+
+    <path d="M489.50,329.87 L481.75,334.12 L477.50,341.87 L473.26,334.12 L465.50,329.87 L473.26,325.63 L477.50,317.87 L481.75,325.63 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="9.55 300.00 300.00"
+            to="369.55 300.00 300.00"
+            dur="9.17s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+
+    <path d="M191.38,134.24 L183.63,138.48 L179.38,146.24 L175.14,138.48 L167.38,134.24 L175.14,130.00 L179.38,122.24 L183.63,130.00 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="233.96 300.00 300.00"
+            to="593.96 300.00 300.00"
+            dur="18.17s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+
+    <path d="M354.47,526.04 L346.71,530.29 L342.47,538.04 L338.23,530.29 L330.47,526.04 L338.23,521.80 L342.47,514.04 L346.71,521.80 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="79.36 300.00 300.00"
+            to="439.36 300.00 300.00"
+            dur="19.32s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+
+    <path d="M405.02,62.57 L397.27,66.82 L393.02,74.57 L388.78,66.82 L381.02,62.57 L388.78,58.33 L393.02,50.57 L397.27,58.33 Z" fill="#ffffff">
+        <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="291.39 300.00 300.00"
+            to="651.39 300.00 300.00"
+            dur="4.17s"
+            repeatCount="indefinite"
+            additive="sum"/>
+    </path>
+</svg>

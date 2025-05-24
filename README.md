@@ -1,3 +1,7 @@
+<div align="center">
+<img src="_static/logo.svg" alt="mapflow logo" width="50" height="50" align="left">
+</div>
+
 # mapflow
 
 [![PyPI version](https://badge.fury.io/py/mapflow.svg)](https://badge.fury.io/py/mapflow)
