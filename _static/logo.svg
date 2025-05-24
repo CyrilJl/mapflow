@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg width="600" height="600" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="300.0" cy="300.0" r="300.0" fill="#111111" />
+    <circle cx="300.0" cy="300.0" r="300.0" fill="#ffffff" />
+    <circle cx="300.0" cy="300.0" r="285.0" fill="#090035" />
+
 
     <path d="M292.79,276.95 L285.04,281.20 L280.79,288.95 L276.55,281.20 L268.79,276.95 L276.55,272.71 L280.79,264.95 L285.04,272.71 Z" fill="#ffffff">
         <animateTransform
