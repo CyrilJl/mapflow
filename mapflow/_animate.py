@@ -145,6 +145,7 @@ class Animation:
 
             if timeout == "auto":
                 timeout = min(10, 0.1 * len(data))
+            # ffmpeg command to create the video
             self._create_video(tempdir, path, fps, timeout=timeout)
 
     def _generate_frame(self, args):
@@ -194,6 +195,19 @@ class Animation:
             print(f"Standard output: {e.stdout}")
             print(f"Standard error: {e.stderr}")
             raise  # Propagate the error if necessary
+
+
+def check_da(da: xr.DataArray, time_name, x_name, y_name, crs):
+    if not isinstance(da, xr.DataArray):
+        raise TypeError(f"Expected xarray.DataArray, got {type(da)}")
+    for dim in (x_name, y_name, time_name):
+        if dim not in da.dims:
+            raise ValueError(f"Dimension '{dim}' not found in DataArray dimensions: {da.dims}")
+    crs_ = CRS.from_user_input(crs)
+    if crs_.is_geographic:
+        da[x_name] = xr.where(da[x_name] > 180, da[x_name] - 360, da[x_name])
+        da = da.sortby(x_name)
+    return da, crs_
 
 
 def animate(
@@ -257,21 +271,15 @@ def animate(
         verbose (int, optional): Verbosity level for the Animation class.
             Defaults to 0.
     """
-    for dim in (x_name, y_name, time_name):
-        if dim not in da.dims:
-            raise ValueError(f"Dimension '{dim}' not found in DataArray dimensions: {da.dims}")
 
-    crs_ = CRS.from_user_input(crs)
-    if crs_.is_geographic:
-        da[x_name] = xr.where(da[x_name] > 180, da[x_name] - 360, da[x_name])
-        da = da.sortby(x_name)
+    da, crs_ = check_da(da, time_name, x_name, y_name, crs)
 
     animation = Animation(x=da[x_name], y=da[y_name], crs=crs_, verbose=verbose, borders=borders)
     path = Path(path)
     path.parent.mkdir(exist_ok=True, parents=True)
     unit = da.attrs.get("unit", None) or da.attrs.get("units", None)
     time = da[time_name].dt.strftime(time_format).values
-    field = da.name
+    field = da.name or da.attrs.get("long_name")
     titles = [f"{field} · {t}" for t in time]
     animation(
         data=da.values,
