@@ -36,22 +36,34 @@ class Animation:
 
     @staticmethod
     def upsample(data, ratio=5):
-        nt, ny, nx = data.shape
-        ret = np.empty((ratio * (nt - 1) + 1, ny, nx), dtype=data.dtype)
-        ret[::ratio] = data
-        delta = np.diff(data, axis=0)
-        for k in range(1, ratio):
-            ret[k::ratio] = ret[::ratio][:-1] + k * delta / ratio
-        return ret
+        if ratio == 1:
+            return data
+        else:
+            nt, ny, nx = data.shape
+            ret = np.empty((ratio * (nt - 1) + 1, ny, nx), dtype=data.dtype)
+            ret[::ratio] = data
+            delta = np.diff(data, axis=0)
+            for k in range(1, ratio):
+                ret[k::ratio] = ret[::ratio][:-1] + k * delta / ratio
+            return ret
+
+    @staticmethod
+    def _process_title(title, upsample_ratio):
+        if isinstance(title, str):
+            return [title] * upsample_ratio
+        elif isinstance(title, (list, tuple)):
+            return np.repeat(title, upsample_ratio).tolist()
+        else:
+            raise ValueError("Title must be a string or a list of strings.")
 
     def __call__(
         self,
         data,
         path,
-        figsize=None,
+        figsize: tuple = None,
         title=None,
-        fps=24,
-        upsample_ratio=2,
+        fps: int = 24,
+        upsample_ratio: int = 2,
         cmap="jet",
         qmin=0.01,
         qmax=99.9,
@@ -98,25 +110,12 @@ class Animation:
             n_jobs (int, optional): Number of parallel jobs for frame generation.
                 Defaults to 2/3 of CPU cores.
         """
-
-        if isinstance(title, str):
-            title = len(data) * [title]
-        elif isinstance(title, (list, tuple)):
-            if len(title) != len(data):
-                raise ValueError()
-
         norm = self.plot._norm(data, vmin, vmax, qmin, qmax, norm, log)
-
-        if upsample_ratio > 1:
-            data = self.upsample(data, ratio=upsample_ratio)
-            titles = [None for _ in range(len(data))] if title is None else np.repeat(title, upsample_ratio)
-        else:
-            titles = title
+        titles = self._process_title(title, upsample_ratio)
+        data = self.upsample(data, ratio=upsample_ratio)
 
         with TemporaryDirectory() as tempdir:
             frame_paths = [Path(tempdir) / f"frame_{k:08d}.png" for k in range(len(data))]
-
-            # Prepare arguments for parallel processing
             args = [
                 (
                     data[k],
