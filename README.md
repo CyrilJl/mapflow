@@ -131,4 +131,5 @@ It creates an animation from an xarray DataArray. This function prepares data fr
 
 * More customization options
 * Better RAM management (generating upsampled frames on the fly instead of computing them all at once)
+* CLI tools
 * Documentation
