@@ -32,10 +32,10 @@ class PlotModel:
         self.dx = abs(self.x[1] - self.x[0])
         self.dy = abs(self.y[1] - self.y[0])
         bbox = (
-            self.x.min() - self.dx,
-            self.y.min() - self.dy,
-            self.x.max() + self.dx,
-            self.y.max() + self.dy,
+            self.x.min() - 10 * self.dx,
+            self.y.min() - 10 * self.dy,
+            self.x.max() + 10 * self.dx,
+            self.y.max() + 10 * self.dy,
         )
 
         if borders is None:
@@ -56,7 +56,7 @@ class PlotModel:
                     patches.append(PolygonPatch(polygon.exterior.coords))
             else:
                 patches.append(PolygonPatch(poly.exterior.coords))
-        return PatchCollection(patches, facecolor="none", linewidth=0.6, edgecolor="k")
+        return PatchCollection(patches, facecolor="none", linewidth=0.5, edgecolor="k")
 
     @staticmethod
     def _norm(data, vmin, vmax, qmin, qmax, norm, log):
@@ -137,7 +137,22 @@ class PlotModel:
         """
         norm = self._norm(data, vmin, vmax, qmin, qmax, norm, log=log)
         plt.figure(figsize=figsize)
-        plt.pcolormesh(self.x, self.y, data, cmap=cmap, norm=norm, shading=shading, rasterized=True)
+        if (self.x.ndim == 1) and (self.y.ndim == 1):
+            plt.imshow(
+                X=data,
+                cmap=cmap,
+                norm=norm,
+                origin="lower",
+                extent=(
+                    self.x.min() - self.dx / 2,
+                    self.x.max() + self.dx / 2,
+                    self.y.min() - self.dy / 2,
+                    self.y.max() + self.dy / 2,
+                ),
+                interpolation=shading,
+            )
+        else:
+            plt.pcolormesh(self.x, self.y, data, cmap=cmap, norm=norm, shading=shading, rasterized=True)
         plt.colorbar(shrink=shrink, label=label)
         plt.xlim(self.x.min() - self.dx / 2, self.x.max() + self.dx / 2)
         plt.ylim(self.y.min() - self.dy / 2, self.y.max() + self.dy / 2)
