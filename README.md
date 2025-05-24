@@ -40,25 +40,6 @@ It creates an animation from an xarray DataArray. This function prepares data fr
 * **`da`** (`xr.DataArray`):
     Input DataArray with at least time, x, and y dimensions.
 
-    ```python
-    import xarray as xr
-    import numpy as np
-    import pandas as pd
-
-    # Example DataArray
-    times = pd.date_range("2000-01-01", "2000-01-03", name="time")
-    longitudes = np.arange(0, 30, 10, dtype=np.float32)
-    latitudes = np.arange(50, 70, 5, dtype=np.float32)
-    data_values = np.random.rand(len(times), len(latitudes), len(longitudes))
-    
-    data_array = xr.DataArray(
-        data_values,
-        coords=[times, latitudes, longitudes],
-        dims=["time", "latitude", "longitude"],
-        name="temperature"
-    )
-    ```
-
 * **`path`** (`str`):
     Output path for the video file.
 
