@@ -28,8 +28,7 @@ ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
 animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4')
 ```
 
-https://github.com/user-attachments/assets/631c7718-9054-4214-befc-7bdc5c3d0901
-
+https://github.com/user-attachments/assets/a6e136eb-5c35-4236-9472-0845a4804740
 
 ## Quick documentation
 
