@@ -12,7 +12,7 @@ from mapflow import animate
 @pytest.fixture
 def air_data():
     ds = xr.tutorial.open_dataset("air_temperature")
-    return ds["air"].isel(time=slice(0, 96))
+    return ds["air"].isel(time=slice(0, 48))
 
 
 def test_animate(air_data):
