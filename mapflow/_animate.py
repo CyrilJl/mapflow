@@ -163,37 +163,56 @@ class Animation:
         plt.clf()
         plt.close()
 
-    def _create_video(self, tempdir, path, fps, timeout):
+    def _create_video(self, tempdir, path, fps, timeout, codec=None, pix_fmt="yuv420p"):
+        # Determine codec based on file extension if not explicitly provided
+        output_format = Path(path).suffix.lower()
+        if codec is None:
+            if output_format == ".mp4":
+                codec = "libx264"
+            elif output_format == ".mov":
+                codec = "libx264"  # or "prores_ks" for ProRes
+            elif output_format == ".webm":
+                codec = "libvpx-vp9"
+            else:
+                codec = "libx264"  # default
+    
+        # Base command
         cmd = [
             "ffmpeg",
             "-y",
-            "-f",
-            "image2",
-            "-framerate",
-            str(fps),
-            "-i",
-            Path(tempdir) / "frame_%08d.png",
-            "-vcodec",
-            "libx264",
-            "-crf",
-            "22",
-            path,
+            "-f", "image2",
+            "-framerate", str(fps),
+            "-i", str(Path(tempdir) / "frame_%08d.png"),
+            "-vcodec", codec,
+            "-crf", "22",  # Adjust CRF for quality (lower = better, 18-28 is typical for H.264)
         ]
+    
+        # Add pixel format for H.264/H.265 to ensure broad compatibility
+        if codec in ["libx264", "libx265"]:
+            cmd.extend(["-pix_fmt", pix_fmt])
+    
+        # Additional format-specific options
+        if output_format == ".mov" and codec == "prores_ks":
+            cmd.extend(["-profile:v", "3"])  # ProRes profile (0=proxy, 3=HQ)
+    
+        # Add output path
+        cmd.append(str(path))
+    
         try:
             result = subprocess.run(
                 cmd,
                 check=True,
-                text=True,  # Captures the output as text
-                stdout=subprocess.PIPE,  # Captures standard output
-                stderr=subprocess.PIPE,  # Captures standard error
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 timeout=timeout,
             )
-            print(result.stdout)  # Optional: display standard output
+            print(result.stdout)
         except subprocess.CalledProcessError as e:
             print(f"Error during command execution: {e}")
             print(f"Standard output: {e.stdout}")
             print(f"Standard error: {e.stderr}")
-            raise  # Propagate the error if necessary
+            raise
 
 
 def check_da(da: xr.DataArray, time_name, x_name, y_name, crs):
