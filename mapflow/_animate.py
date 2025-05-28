@@ -169,8 +169,8 @@ class Animation:
         path = Path(path)
         suffix = path.suffix.lower()
 
-        if suffix not in (".avi", ".mov", ".mp4"):
-            raise ValueError("Output format must be either .avi, .mov or .mp4")
+        if suffix not in (".avi", ".mkv", ".mov", ".mp4"):
+            raise ValueError("Output format must be either .avi, .mkv, .mov or .mp4")
 
         # Base command
         cmd = [
@@ -185,22 +185,13 @@ class Animation:
         ]
 
         # Add codec and format specific options
-        if suffix == ".mp4":
+        if suffix in (".mkv", ".mov", ".mp4"):
             cmd.extend(
                 [
                     "-vcodec",
                     "libx264",
                     "-crf",
                     "22",  # Quality level (0-51, lower is better)
-                ]
-            )
-        elif suffix == ".mov":
-            cmd.extend(
-                [
-                    "-vcodec",
-                    "libx264",
-                    "-crf",
-                    "22",
                 ]
             )
         elif suffix == ".avi":
