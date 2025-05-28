@@ -163,41 +163,57 @@ class Animation:
         plt.clf()
         plt.close()
 
-    def _create_video(self, tempdir, path, fps, timeout, codec=None, pix_fmt="yuv420p"):
-        # Determine codec based on file extension if not explicitly provided
-        output_format = Path(path).suffix.lower()
-        if codec is None:
-            if output_format == ".mp4":
-                codec = "libx264"
-            elif output_format == ".mov":
-                codec = "libx264"  # or "prores_ks" for ProRes
-            elif output_format == ".webm":
-                codec = "libvpx-vp9"
-            else:
-                codec = "libx264"  # default
-    
+    @staticmethod
+    def _create_video(tempdir, path, fps, timeout):
+        path = Path(path)
+        suffix = path.suffix.lower()
+
+        if suffix not in (".avi", ".mov", ".mp4"):
+            raise ValueError("Output format must be either .avi, .mov or .mp4")
+
         # Base command
         cmd = [
             "ffmpeg",
-            "-y",
-            "-f", "image2",
-            "-framerate", str(fps),
-            "-i", str(Path(tempdir) / "frame_%08d.png"),
-            "-vcodec", codec,
-            "-crf", "22",  # Adjust CRF for quality (lower = better, 18-28 is typical for H.264)
+            "-y",  # Overwrite without asking
+            "-f",
+            "image2",
+            "-framerate",
+            str(fps),
+            "-i",
+            str(Path(tempdir) / "frame_%08d.png"),
         ]
-    
-        # Add pixel format for H.264/H.265 to ensure broad compatibility
-        if codec in ["libx264", "libx265"]:
-            cmd.extend(["-pix_fmt", pix_fmt])
-    
-        # Additional format-specific options
-        if output_format == ".mov" and codec == "prores_ks":
-            cmd.extend(["-profile:v", "3"])  # ProRes profile (0=proxy, 3=HQ)
-    
-        # Add output path
+
+        # Add codec and format specific options
+        if suffix == ".mp4":
+            cmd.extend(
+                [
+                    "-vcodec",
+                    "libx264",
+                    "-crf",
+                    "22",  # Quality level (0-51, lower is better)
+                ]
+            )
+        elif suffix == ".mov":
+            cmd.extend(
+                [
+                    "-vcodec",
+                    "libx264",
+                    "-crf",
+                    "22",
+                ]
+            )
+        elif suffix == ".avi":
+            cmd.extend(
+                [
+                    "-vcodec",
+                    "mpeg4",
+                    "-q:v",
+                    "5",  # Quality level (1-31, lower is better)
+                ]
+            )
+
         cmd.append(str(path))
-    
+
         try:
             result = subprocess.run(
                 cmd,
@@ -207,11 +223,16 @@ class Animation:
                 stderr=subprocess.PIPE,
                 timeout=timeout,
             )
-            print(result.stdout)
+            if result.stdout:  # Only print if there's output
+                print(result.stdout)
         except subprocess.CalledProcessError as e:
-            print(f"Error during command execution: {e}")
+            print(f"Error during video creation: {e}")
+            print(f"Command: {' '.join(cmd)}")
             print(f"Standard output: {e.stdout}")
             print(f"Standard error: {e.stderr}")
+            raise
+        except subprocess.TimeoutExpired:
+            print(f"Video creation timed out after {timeout} seconds")
             raise
 
 
