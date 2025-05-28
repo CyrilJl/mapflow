@@ -87,6 +87,7 @@ class Animation:
             data (np.ndarray): A 3D numpy array where the first dimension is time
                 (or frame sequence) and the next two are spatial (y, x).
             path (str | Path): The output path for the generated video file.
+                Supported formats are avi, mov and mp4.
             figsize (tuple[float, float], optional): Figure size (width, height)
                 in inches. Defaults to None (matplotlib's default).
             title (str | list[str], optional): Title for the plot. If a string,
@@ -279,7 +280,8 @@ def animate(
 
     Args:
         da (xr.DataArray): Input DataArray with at least time, x, and y dimensions.
-        path (str): Output path for the video file.
+        path (str): Output path for the video file. Supported formats are avi, mov
+            and mp4.
         time_name (str, optional): Name of the time coordinate in `da`.
             Defaults to "time".
         x_name (str, optional): Name of the x-coordinate (e.g., longitude) in `da`.
