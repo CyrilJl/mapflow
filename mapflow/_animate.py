@@ -260,6 +260,7 @@ def animate(
     upsample_ratio=4,
     fps=24,
     n_jobs=None,
+    timeout="auto",
     verbose=0,
 ):
     """
@@ -328,5 +329,6 @@ def animate(
         fps=fps,
         label=unit,
         dpi=180,
+        timeout=timeout,
         n_jobs=n_jobs,
     )
