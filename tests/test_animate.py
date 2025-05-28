@@ -141,9 +141,9 @@ def test_animate_mov(air_data):
         )
         assert os.path.exists(output_path)
 
-def test_animate_webm(air_data):
+def test_animate_avi(air_data):
     with TemporaryDirectory() as tmpdir:
-        output_path = f"{tmpdir}/test_animation.webm"
+        output_path = f"{tmpdir}/test_animation.avi"
         animate(
             da=air_data,
             path=output_path,
