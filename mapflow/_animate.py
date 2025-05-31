@@ -12,9 +12,9 @@ from tqdm.auto import tqdm
 
 from ._plot import PlotModel
 
-X_NAME_CANDIDATES = ["x", "lon", "longitude"]
-Y_NAME_CANDIDATES = ["y", "lat", "latitude"]
-TIME_NAME_CANDIDATES = ["time", "t", "times"]
+X_NAME_CANDIDATES = ("x", "lon", "longitude")
+Y_NAME_CANDIDATES = ("y", "lat", "latitude")
+TIME_NAME_CANDIDATES = ("time", "t", "times")
 
 
 class Animation:
