@@ -12,6 +12,10 @@ from tqdm.auto import tqdm
 
 from ._plot import PlotModel
 
+X_NAME_CANDIDATES = ["x", "lon", "longitude"]
+Y_NAME_CANDIDATES = ["y", "lat", "latitude"]
+TIME_NAME_CANDIDATES = ["time", "t", "times"]
+
 
 class Animation:
     def __init__(self, x, y, crs=4326, verbose=0, borders=None):
@@ -228,26 +232,60 @@ class Animation:
             raise
 
 
+def process_crs(da, crs):
+    if crs is None:
+        if "spatial_ref" in da.coords:
+            crs = da.spatial_ref.attrs.get("crs_wkt", 4326)
+        else:
+            crs = 4326
+    ret = CRS.from_user_input(crs)
+    return ret
+
+
 def check_da(da: xr.DataArray, time_name, x_name, y_name, crs):
     if not isinstance(da, xr.DataArray):
         raise TypeError(f"Expected xarray.DataArray, got {type(da)}")
     for dim in (x_name, y_name, time_name):
         if dim not in da.dims:
             raise ValueError(f"Dimension '{dim}' not found in DataArray dimensions: {da.dims}")
-    crs_ = CRS.from_user_input(crs)
+    crs_ = process_crs(da, crs)
     if crs_.is_geographic:
         da[x_name] = xr.where(da[x_name] > 180, da[x_name] - 360, da[x_name])
-        da = da.sortby(x_name)
-    return da, crs_
+    ret = da.sortby(x_name).sortby(y_name).sortby(time_name).squeeze()
+    if ret.ndim != 3:
+        raise ValueError(f"DataArray must have 3 dimensions (time, {y_name}, {x_name}), got {da.ndim} dimensions.")
+    ret = ret.transpose(time_name, y_name, x_name)
+    return ret, crs_
+
+
+def _guess_coord_name(da_coords, candidates, provided_name, coord_type_for_error):
+    """
+    Guesses the coordinate name if not provided.
+    Iterates through da_coords, compares lowercased names with candidates.
+    """
+    if provided_name is not None:
+        return provided_name
+
+    for coord_name_key in da_coords:
+        # Convert coord_name_key to string before lower() in case it's not already a string
+        coord_name_str = str(coord_name_key).lower()
+        if coord_name_str in candidates:
+            return str(coord_name_key)  # Return original case name
+
+    raise ValueError(
+        f"Could not automatically detect {coord_type_for_error}-coordinate. "
+        f"Please specify '{coord_type_for_error}_name' from available coordinates: {list(da_coords.keys())}. "
+        f"Tried to guess from candidates: {candidates}."
+    )
 
 
 def animate(
     da: xr.DataArray,
     path: str,
-    time_name="time",
-    x_name="longitude",
-    y_name="latitude",
-    crs=4326,
+    time_name=None,
+    x_name=None,
+    y_name=None,
+    crs=None,
     borders=None,
     cmap="jet",
     norm=None,
@@ -275,12 +313,12 @@ def animate(
         da (xr.DataArray): Input DataArray with at least time, x, and y dimensions.
         path (str): Output path for the video file. Supported formats are avi, mov
             and mp4.
-        time_name (str, optional): Name of the time coordinate in `da`.
-            Defaults to "time".
+        time_name (str, optional): Name of the time coordinate in `da`. If None,
+            it's guessed from ['time', 't', 'times']. Defaults to None.
         x_name (str, optional): Name of the x-coordinate (e.g., longitude) in `da`.
-            Defaults to "longitude".
+            If None, it's guessed from ['x', 'lon', 'longitude']. Defaults to None.
         y_name (str, optional): Name of the y-coordinate (e.g., latitude) in `da`.
-            Defaults to "latitude".
+            If None, it's guessed from ['y', 'lat', 'latitude']. Defaults to None.
         crs (int | str | CRS, optional): Coordinate Reference System of the data.
             Defaults to 4326 (WGS84).
         borders (gpd.GeoDataFrame | gpd.GeoSeries | None, optional):
@@ -305,19 +343,29 @@ def animate(
         verbose (int, optional): Verbosity level for the Animation class.
             Defaults to 0.
     """
+    # Guess coordinate names if not provided
+    actual_time_name = _guess_coord_name(da.coords, TIME_NAME_CANDIDATES, time_name, "time")
+    actual_x_name = _guess_coord_name(da.coords, X_NAME_CANDIDATES, x_name, "x")
+    actual_y_name = _guess_coord_name(da.coords, Y_NAME_CANDIDATES, y_name, "y")
 
-    da, crs_ = check_da(da, time_name, x_name, y_name, crs)
+    da, crs_ = check_da(da, actual_time_name, actual_x_name, actual_y_name, crs)
 
-    animation = Animation(x=da[x_name], y=da[y_name], crs=crs_, verbose=verbose, borders=borders)
-    path = Path(path)
-    path.parent.mkdir(exist_ok=True, parents=True)
+    animation = Animation(
+        x=da[actual_x_name].values,
+        y=da[actual_y_name].values,
+        crs=crs_,
+        verbose=verbose,
+        borders=borders,
+    )
+    output_path = Path(path)
+    output_path.parent.mkdir(exist_ok=True, parents=True)
     unit = da.attrs.get("unit", None) or da.attrs.get("units", None)
-    time = da[time_name].dt.strftime(time_format).values
+    time = da[actual_time_name].dt.strftime(time_format).values
     field = da.name or da.attrs.get("long_name")
     titles = [f"{field} · {t}" for t in time]
     animation(
         data=da.values,
-        path=path,
+        path=output_path,
         title=titles,
         norm=norm,
         log=log,
