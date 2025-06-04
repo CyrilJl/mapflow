@@ -193,7 +193,7 @@ class Animation:
             cmd.extend(
                 [
                     "-vcodec",
-                    "libx264",
+                    "libx265",
                     "-crf",
                     "22",  # Quality level (0-51, lower is better)
                 ]
