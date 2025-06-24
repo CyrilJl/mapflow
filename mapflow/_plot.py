@@ -22,15 +22,22 @@ class PlotModel:
             borders (gpd.GeoDataFrame | gpd.GeoSeries | None): Custom borders to use.
                 If None, defaults to world borders from a packaged GeoPackage.
         """
-        self.x = np.ascontiguousarray(x)
-        self.y = np.ascontiguousarray(y)
+        self.x = np.asarray_chkfinite(x)
+        self.y = np.asarray_chkfinite(y)
+        if self.x.ndim != self.y.ndim:
+            raise ValueError("x and y must have the same dimensionality (both 1D or both 2D)")
+
         self.crs = CRS.from_user_input(crs)
         if self.crs.is_geographic:
             self.aspect = 1 / np.cos((self.y.mean() * np.pi / 180))
         else:
             self.aspect = 1
-        self.dx = abs(self.x[1] - self.x[0])
-        self.dy = abs(self.y[1] - self.y[0])
+        if self.x.ndim == 1:
+            self.dx = abs(self.x[1] - self.x[0])
+            self.dy = abs(self.y[1] - self.y[0])
+        else:
+            self.dx = np.diff(self.x, axis=1).max()
+            self.dy = np.diff(self.y, axis=0).max()
         bbox = (
             self.x.min() - 10 * self.dx,
             self.y.min() - 10 * self.dy,
