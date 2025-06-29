@@ -4,6 +4,7 @@ from os import cpu_count
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
@@ -246,14 +247,16 @@ def check_da(da: xr.DataArray, time_name, x_name, y_name, crs):
     if not isinstance(da, xr.DataArray):
         raise TypeError(f"Expected xarray.DataArray, got {type(da)}")
     for dim in (x_name, y_name, time_name):
-        if dim not in da.dims:
-            raise ValueError(f"Dimension '{dim}' not found in DataArray dimensions: {da.dims}")
+        if dim not in da.coords:
+            raise ValueError(f"Dimension '{dim}' not found in DataArray coordinates: {da.dims}")
     crs_ = process_crs(da, crs)
     if crs_.is_geographic:
         da[x_name] = xr.where(da[x_name] > 180, da[x_name] - 360, da[x_name])
     ret = da.sortby(x_name).sortby(y_name).sortby(time_name).squeeze()
     if ret.ndim != 3:
-        raise ValueError(f"DataArray must have 3 dimensions (time, {y_name}, {x_name}), got {da.ndim} dimensions.")
+        raise ValueError(
+            f"DataArray must have 3 dimensions ({time_name}, {y_name}, {x_name}), got {da.ndim} dimensions."
+        )
     ret = ret.transpose(time_name, y_name, x_name)
     return ret, crs_
 
@@ -282,11 +285,11 @@ def _guess_coord_name(da_coords, candidates, provided_name, coord_type_for_error
 def animate(
     da: xr.DataArray,
     path: str,
-    time_name=None,
-    x_name=None,
-    y_name=None,
+    time_name: str = None,
+    x_name: str = None,
+    y_name: str = None,
     crs=None,
-    borders=None,
+    borders: gpd.GeoDataFrame | gpd.GeoSeries | None = None,
     cmap="jet",
     norm=None,
     log=False,
