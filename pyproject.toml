@@ -16,3 +16,6 @@ dependencies = ["xarray", "matplotlib", "geopandas", "tqdm"]
 
 [project.urls]
 Homepage = "https://github.com/CyrilJl/mapflow"
+
+[tool.ruff]
+line-length = 120
