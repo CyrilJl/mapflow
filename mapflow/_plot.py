@@ -92,6 +92,16 @@ class PlotModel:
         vmax = np.nanpercentile(data, q=qmax) if vmax is None else vmax
         return Normalize(vmin=vmin, vmax=vmax)
 
+    def _process_data(self, data):
+        if not isinstance(data, np.ndarray):
+            data = np.asarray(data)
+        data = np.squeeze(data)
+        if data.ndim != 2:
+            raise ValueError("Data must be a 2D array.")
+        if data.shape[0] != self.y.size or data.shape[1] != self.x.size:
+            raise ValueError("Data shape does not match x and y dimensions.")
+        return data
+
     def __call__(
         self,
         data,
@@ -142,6 +152,7 @@ class PlotModel:
             show (bool, optional): Whether to display the plot using `plt.show()`.
                 Defaults to True.
         """
+        data
         norm = self._norm(data, vmin, vmax, qmin, qmax, norm, log=log)
         plt.figure(figsize=figsize)
         if (self.x.ndim == 1) and (self.y.ndim == 1):
