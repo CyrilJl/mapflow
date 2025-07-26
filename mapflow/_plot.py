@@ -4,11 +4,14 @@ from pathlib import Path
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
+import xarray as xr
 from matplotlib.collections import PatchCollection
 from matplotlib.colors import LogNorm, Normalize
 from matplotlib.patches import Polygon as PolygonPatch
 from pyproj import CRS
 from shapely.geometry import MultiPolygon
+
+from ._misc import X_NAME_CANDIDATES, Y_NAME_CANDIDATES, guess_coord_name, process_crs
 
 
 class PlotModel:
@@ -152,7 +155,7 @@ class PlotModel:
             show (bool, optional): Whether to display the plot using `plt.show()`.
                 Defaults to True.
         """
-        data
+        data = self._process_data(data)
         norm = self._norm(data, vmin, vmax, qmin, qmax, norm, log=log)
         plt.figure(figsize=figsize)
         if (self.x.ndim == 1) and (self.y.ndim == 1):
@@ -170,7 +173,15 @@ class PlotModel:
                 interpolation=shading,
             )
         else:
-            plt.pcolormesh(self.x, self.y, data, cmap=cmap, norm=norm, shading=shading, rasterized=True)
+            plt.pcolormesh(
+                self.x,
+                self.y,
+                data,
+                cmap=cmap,
+                norm=norm,
+                shading=shading,
+                rasterized=True,
+            )
         plt.colorbar(shrink=shrink, label=label)
         plt.xlim(self.x.min() - self.dx / 2, self.x.max() + self.dx / 2)
         plt.ylim(self.y.min() - self.dy / 2, self.y.max() + self.dy / 2)
@@ -181,3 +192,17 @@ class PlotModel:
         plt.tight_layout()
         if show:
             plt.show()
+
+
+def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, **kwargs):
+    actual_x_name = guess_coord_name(da.coords, X_NAME_CANDIDATES, x_name, "x")
+    actual_y_name = guess_coord_name(da.coords, Y_NAME_CANDIDATES, y_name, "y")
+
+    da = da.sortby(actual_x_name).sortby(actual_y_name)
+    crs_ = process_crs(da, crs)
+    if crs_.is_geographic:
+        da[actual_x_name] = xr.where(da[actual_x_name] > 180, da[actual_x_name] - 360, da[actual_x_name])
+
+    p = PlotModel(x=da[actual_x_name].values, y=da[actual_y_name].values, crs=crs)
+    data = p._process_data(da.values)
+    p(data, **kwargs)
