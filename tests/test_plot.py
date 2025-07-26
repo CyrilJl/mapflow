@@ -1,6 +1,3 @@
-import os
-from tempfile import TemporaryDirectory
-
 import pytest
 import xarray as xr
 
