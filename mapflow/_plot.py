@@ -76,21 +76,40 @@ class PlotModel:
             data (array-like): Data to normalize.
             vmin (float): Minimum value for normalization.
             vmax (float): Maximum value for normalization.
-            qmin (float): Minimum quantile for normalization.
-            qmax (float): Maximum quantile for normalization.
+            qmin (float): Minimum quantile for normalization (0-100).
+            qmax (float): Maximum quantile for normalization (0-100).
             norm (matplotlib.colors.Normalize): Custom normalization object.
             log (bool): Indicates if a logarithmic scale should be used.
 
         Returns:
             matplotlib.colors.Normalize: Normalization object.
 
+        Raises:
+            ValueError: If qmin/qmax are not between 0-100 or if log=True with no positive values.
         """
+        # Validate quantile ranges
+        if not (0 <= qmin <= 100):
+            raise ValueError(f"qmin must be between 0 and 100, got {qmin}")
+        if not (0 <= qmax <= 100):
+            raise ValueError(f"qmax must be between 0 and 100, got {qmax}")
+        if qmin >= qmax:
+            raise ValueError(f"qmin must be less than qmax, got {qmin} and {qmax}")
+
         if norm is not None:
             return norm
+
         if log:
-            vmin = np.nanpercentile(data[data > 0], q=qmin) if vmin is None else vmin
-            vmax = np.nanpercentile(data[data > 0], q=qmax) if vmax is None else vmax
+            positive_data = data[data > 0]
+            if len(positive_data) == 0:
+                return Normalize(vmin=1e-1, vmax=1e0)
+
+            vmin = np.nanpercentile(positive_data, q=qmin) if vmin is None else vmin
+            vmax = np.nanpercentile(positive_data, q=qmax) if vmax is None else vmax
+
+            if vmin <= 0 or vmax <= 0:
+                raise ValueError(f"Normalization range for log scale must be positive. Got vmin={vmin}, vmax={vmax}")
             return LogNorm(vmin=vmin, vmax=vmax)
+
         vmin = np.nanpercentile(data, q=qmin) if vmin is None else vmin
         vmax = np.nanpercentile(data, q=qmax) if vmax is None else vmax
         return Normalize(vmin=vmin, vmax=vmax)
@@ -123,7 +142,7 @@ class PlotModel:
         show=True,
     ):
         """
-        Plots a 2D data array using pcolormesh.
+        Plots a 2D data array using imshow or pcolormesh.
 
         This method handles the actual plotting of a single frame. It applies
         normalization, colormaps, adds a colorbar, overlays borders, sets the
@@ -195,6 +214,47 @@ class PlotModel:
 
 
 def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, **kwargs):
+    """Convenience function for quick plotting of an xarray DataArray using PlotModel.
+
+    This is a simplified wrapper around the `PlotModel` class that handles:
+    - Automatic coordinate detection
+    - CRS processing
+    - Data sorting and longitude wrapping (for geographic CRS)
+    - Single-call plotting
+
+    For better performance when making multiple plots of the same geographic domain,
+    consider using `PlotModel` directly, which pre-computes geographic borders and
+    can be reused for multiple plots.
+
+    Args:
+        da: xarray DataArray with 2D data to plot. Must have appropriate coordinates.
+        x_name: Name of the x-coordinate dimension. If None, will attempt to guess.
+        y_name: Name of the y-coordinate dimension. If None, will attempt to guess.
+        crs: Coordinate Reference System. Can be:
+            - EPSG code (e.g., 4326 for WGS84)
+            - PROJ string
+            - pyproj.CRS object
+            - If the DataArray has a 'crs' attribute, that will be used by default
+        **kwargs: Additional arguments passed to PlotModel.__call__(), including:
+            - figsize: Tuple (width, height) in inches
+            - qmin/qmax: Quantile ranges for color scaling (0-100)
+            - vmin/vmax: Explicit value ranges for color scaling
+            - log: Whether to use logarithmic color scale
+            - cmap: Colormap name
+            - norm: Custom normalization
+            - shading: Color shading method
+            - shrink: Colorbar shrink factor
+            - label: Colorbar label
+            - title: Plot title
+            - show: Whether to display the plot
+
+    Example:
+        >>> plot_da(temperature_data, cmap='coolwarm', title='Surface Temperature')
+        >>> plot_da(precipitation_data, log=True, cmap='Blues', label='mm/day')
+
+    See Also:
+        PlotModel: The underlying plotting class used by this function
+    """
     actual_x_name = guess_coord_name(da.coords, X_NAME_CANDIDATES, x_name, "x")
     actual_y_name = guess_coord_name(da.coords, Y_NAME_CANDIDATES, y_name, "y")
 
