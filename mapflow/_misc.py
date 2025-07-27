@@ -21,7 +21,7 @@ def check_ffmpeg():
         warnings.warn("ffmpeg is not found. Some functionalities might be limited.")
 
 
-def guess_coord_name(da_coords, candidates, provided_name, coord_type_for_error):
+def guess_coord_name(da_coords, candidates, provided_name, coord_type_for_error) -> str:
     """
     Guesses the coordinate name if not provided.
     Iterates through da_coords, compares lowercased names with candidates.
@@ -48,5 +48,4 @@ def process_crs(da, crs):
             crs = da.spatial_ref.attrs.get("crs_wkt", 4326)
         else:
             crs = 4326
-    ret = CRS.from_user_input(crs)
-    return ret
+    return CRS.from_user_input(crs)
