@@ -15,16 +15,17 @@ from ._misc import X_NAME_CANDIDATES, Y_NAME_CANDIDATES, guess_coord_name, proce
 
 
 class PlotModel:
-    def __init__(self, x, y, crs=4326, borders=None):
-        """
-        Initializes the PlotModel.
+    """A class for plotting 2D data with geographic borders. Useful for multiple
+    plots of the same geographic domain, as it pre-computes geographic borders.
 
-        Args:
-            x, y: Coordinates for the plot.
-            crs: Coordinate Reference System. Defaults to 4326.
-            borders (gpd.GeoDataFrame | gpd.GeoSeries | None): Custom borders to use.
-                If None, defaults to world borders from a packaged GeoPackage.
-        """
+    Args:
+        x, y: Coordinates for the plot.
+        crs: Coordinate Reference System. Defaults to 4326.
+        borders (gpd.GeoDataFrame | gpd.GeoSeries | None): Custom borders to use.
+            If None, defaults to world borders from a packaged GeoPackage.
+    """
+
+    def __init__(self, x, y, crs=4326, borders=None):
         self.x = np.asarray_chkfinite(x)
         self.y = np.asarray_chkfinite(y)
         if self.x.ndim != self.y.ndim:
