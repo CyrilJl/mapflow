@@ -30,7 +30,7 @@ Simple usage
 .. raw:: html
 
     <video width="640" height="480" controls>
-      <source src="../_static/animation.mp4" type="video/mp4">
+      <source src="./_static/animation.mp4" type="video/mp4">
     </video>
 
 Static plot
