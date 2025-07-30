@@ -22,8 +22,9 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "sphinxawesome_theme"
+html_permalinks = False
 html_static_path = ["../_static"]
-html_extra_path = ['../_static/animation.mp4']
+# html_extra_path = ['../_static/animation.mp4']
 html_logo = "../_static/logo.svg"
 html_theme_options = {
     # "main_nav_links": {"Utilisation": "usage", "Modèles": "models", "Décodage Grib": "grib_defs"},
