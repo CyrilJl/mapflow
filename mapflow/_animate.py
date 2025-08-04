@@ -19,23 +19,20 @@ TIME_NAME_CANDIDATES = ("time", "t", "times")
 
 
 class Animation:
+    """
+    Args:
+        x (np.ndarray): Array of x-coordinates (e.g., longitudes).
+        y (np.ndarray): Array of y-coordinates (e.g., latitudes).
+        crs (int | str | CRS, optional): Coordinate Reference System.
+            Defaults to 4326 (WGS84).
+        verbose (int, optional): Verbosity level. If > 0, progress bars
+            will be shown. Defaults to 0.
+        borders (gpd.GeoDataFrame | gpd.GeoSeries | None, optional):
+            Custom borders to use for plotting. If None, defaults to
+            world borders. Defaults to None.
+    """
+
     def __init__(self, x, y, crs=4326, verbose=0, borders=None):
-        """
-        Initializes the Animation class.
-
-        Sets up the plotting model with the given coordinates, CRS, and borders.
-
-        Args:
-            x (np.ndarray): Array of x-coordinates (e.g., longitudes).
-            y (np.ndarray): Array of y-coordinates (e.g., latitudes).
-            crs (int | str | CRS, optional): Coordinate Reference System.
-                Defaults to 4326 (WGS84).
-            verbose (int, optional): Verbosity level. If > 0, progress bars
-                will be shown. Defaults to 0.
-            borders (gpd.GeoDataFrame | gpd.GeoSeries | None, optional):
-                Custom borders to use for plotting. If None, defaults to
-                world borders. Defaults to None.
-        """
         self.plot = PlotModel(x=x, y=y, crs=crs, borders=borders)
         self.verbose = verbose
 
