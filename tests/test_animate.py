@@ -129,6 +129,7 @@ def test_animate_borders(air_data):
         )
         assert os.path.exists(path)
 
+
 def test_animate_mkv(air_data):
     with TemporaryDirectory() as tmpdir:
         path = f"{tmpdir}/test_animation.mkv"
@@ -141,6 +142,7 @@ def test_animate_mkv(air_data):
         )
         assert os.path.exists(path)
 
+
 def test_animate_mov(air_data):
     with TemporaryDirectory() as tmpdir:
         path = f"{tmpdir}/test_animation.mov"
@@ -152,6 +154,7 @@ def test_animate_mov(air_data):
             verbose=True,
         )
         assert os.path.exists(path)
+
 
 def test_animate_avi(air_data):
     with TemporaryDirectory() as tmpdir:
