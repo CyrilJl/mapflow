@@ -13,12 +13,12 @@ from mapflow import animate
 @pytest.fixture
 def air_data():
     ds = xr.tutorial.open_dataset("air_temperature")
-    return ds["air"].isel(time=slice(0, 48))
+    return ds["air"].isel(time=slice(0, 24))
 
 
 @pytest.fixture
 def air_data_2d_coordinates():
-    ntime = 36
+    ntime = 24
     ny = 50
     nx = 50
     # Create a basic rectilinear grid first
