@@ -259,11 +259,12 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, **kwargs):
     actual_x_name = guess_coord_name(da.coords, X_NAME_CANDIDATES, x_name, "x")
     actual_y_name = guess_coord_name(da.coords, Y_NAME_CANDIDATES, y_name, "y")
 
-    da = da.sortby(actual_x_name).sortby(actual_y_name)
+    if da[actual_x_name].ndim == 1 and da[actual_y_name].ndim == 1:
+        da = da.sortby(actual_x_name).sortby(actual_y_name)
     crs_ = process_crs(da, crs)
     if crs_.is_geographic:
         da[actual_x_name] = xr.where(da[actual_x_name] > 180, da[actual_x_name] - 360, da[actual_x_name])
 
-    p = PlotModel(x=da[actual_x_name].values, y=da[actual_y_name].values, crs=crs)
+    p = PlotModel(x=da[actual_x_name].values, y=da[actual_y_name].values, crs=crs_)
     data = p._process_data(da.values)
     p(data, **kwargs)
