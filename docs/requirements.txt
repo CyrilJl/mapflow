@@ -1,3 +1,6 @@
 sphinx
 sphinxawesome-theme
+xarray
+matplotlib
 geopandas
+tqdm
