@@ -121,8 +121,13 @@ class PlotModel:
         data = np.squeeze(data)
         if data.ndim != 2:
             raise ValueError("Data must be a 2D array.")
-        if data.shape[0] != self.y.size or data.shape[1] != self.x.size:
-            raise ValueError("Data shape does not match x and y dimensions.")
+
+        if self.x.ndim == 1:
+            if data.shape[0] != self.y.size or data.shape[1] != self.x.size:
+                raise ValueError("Data shape does not match x and y dimensions.")
+        else:
+            if data.shape != self.x.shape:
+                raise ValueError("Data shape does not match x and y dimensions.")
         return data
 
     def __call__(

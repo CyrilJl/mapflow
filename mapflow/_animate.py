@@ -249,12 +249,27 @@ def check_da(da: xr.DataArray, time_name, x_name, y_name, crs):
     crs_ = process_crs(da, crs)
     if crs_.is_geographic:
         da[x_name] = xr.where(da[x_name] > 180, da[x_name] - 360, da[x_name])
-    ret = da.sortby(x_name).sortby(y_name).sortby(time_name).squeeze()
+
+    # For non-rectilinear grids (2D coordinates), sorting by spatial dimensions is not possible.
+    if da[x_name].ndim == 1 and da[y_name].ndim == 1:
+        ret = da.sortby(x_name).sortby(y_name)
+    else:
+        ret = da
+    ret = ret.sortby(time_name).squeeze()
+
     if ret.ndim != 3:
         raise ValueError(
             f"DataArray must have 3 dimensions ({time_name}, {y_name}, {x_name}), got {da.ndim} dimensions."
         )
-    ret = ret.transpose(time_name, y_name, x_name)
+
+    if da[x_name].ndim == 1 and da[y_name].ndim == 1:
+        ret = ret.transpose(time_name, y_name, x_name)
+    else:
+        current_dims = list(ret.dims)
+        if current_dims[0] != time_name:
+            current_dims.remove(time_name)
+            new_order = [time_name] + current_dims
+            ret = ret.transpose(*new_order)
     return ret, crs_
 
 
