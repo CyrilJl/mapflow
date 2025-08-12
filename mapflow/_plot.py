@@ -82,6 +82,20 @@ class PlotModel:
         return PatchCollection(patches, facecolor="none", linewidth=0.5, edgecolor="k")
 
     @staticmethod
+    def _log_norm(data, vmin, vmax, qmin, qmax):
+        """Generates a logarithmic normalization."""
+        positive_data = data[data > 0]
+        if len(positive_data) == 0:
+            return Normalize(vmin=1e-1, vmax=1e0)
+
+        vmin = np.nanpercentile(positive_data, q=qmin) if vmin is None else vmin
+        vmax = np.nanpercentile(positive_data, q=qmax) if vmax is None else vmax
+
+        if vmin <= 0 or vmax <= 0:
+            raise ValueError(f"Normalization range for log scale must be positive. Got vmin={vmin}, vmax={vmax}")
+        return LogNorm(vmin=vmin, vmax=vmax)
+
+    @staticmethod
     def _norm(data, vmin, vmax, qmin, qmax, norm, log):
         """Generates a normalization based on the specified parameters.
 
@@ -112,16 +126,7 @@ class PlotModel:
             return norm
 
         if log:
-            positive_data = data[data > 0]
-            if len(positive_data) == 0:
-                return Normalize(vmin=1e-1, vmax=1e0)
-
-            vmin = np.nanpercentile(positive_data, q=qmin) if vmin is None else vmin
-            vmax = np.nanpercentile(positive_data, q=qmax) if vmax is None else vmax
-
-            if vmin <= 0 or vmax <= 0:
-                raise ValueError(f"Normalization range for log scale must be positive. Got vmin={vmin}, vmax={vmax}")
-            return LogNorm(vmin=vmin, vmax=vmax)
+            return PlotModel._log_norm(data, vmin, vmax, qmin, qmax)
 
         vmin = np.nanpercentile(data, q=qmin) if vmin is None else vmin
         vmax = np.nanpercentile(data, q=qmax) if vmax is None else vmax

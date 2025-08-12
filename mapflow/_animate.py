@@ -179,17 +179,15 @@ class Animation:
         plt.close()
 
     @staticmethod
-    def _create_video(tempdir, path, fps, timeout):
+    def _build_ffmpeg_cmd(tempdir, path, fps):
         path = Path(path)
         suffix = path.suffix.lower()
-
         if suffix not in (".avi", ".mkv", ".mov", ".mp4"):
             raise ValueError("Output format must be either .avi, .mkv, .mov or .mp4")
 
-        # Base command
         cmd = [
             "ffmpeg",
-            "-y",  # Overwrite without asking
+            "-y",
             "-f",
             "image2",
             "-framerate",
@@ -197,29 +195,16 @@ class Animation:
             "-i",
             str(Path(tempdir) / "frame_%08d.png"),
         ]
-
-        # Add codec and format specific options
         if suffix in (".mkv", ".mov", ".mp4"):
-            cmd.extend(
-                [
-                    "-vcodec",
-                    "libx265",
-                    "-crf",
-                    "22",  # Quality level (0-51, lower is better)
-                ]
-            )
+            cmd.extend(["-vcodec", "libx265", "-crf", "22"])
         elif suffix == ".avi":
-            cmd.extend(
-                [
-                    "-vcodec",
-                    "mpeg4",
-                    "-q:v",
-                    "5",  # Quality level (1-31, lower is better)
-                ]
-            )
-
+            cmd.extend(["-vcodec", "mpeg4", "-q:v", "5"])
         cmd.append(str(path))
+        return cmd
 
+    @staticmethod
+    def _create_video(tempdir, path, fps, timeout):
+        cmd = Animation._build_ffmpeg_cmd(tempdir, path, fps)
         try:
             result = subprocess.run(
                 cmd,
@@ -264,25 +249,24 @@ def check_da(da: xr.DataArray, time_name, x_name, y_name, crs):
 
     # For non-rectilinear grids (2D coordinates), sorting by spatial dimensions is not possible.
     if da[x_name].ndim == 1 and da[y_name].ndim == 1:
-        ret = da.sortby(x_name).sortby(y_name)
-    else:
-        ret = da
-    ret = ret.sortby(time_name).squeeze()
+        da = da.sortby(x_name).sortby(y_name)
 
-    if ret.ndim != 3:
+    da = da.sortby(time_name).squeeze()
+
+    if da.ndim != 3:
         raise ValueError(
             f"DataArray must have 3 dimensions ({time_name}, {y_name}, {x_name}), got {da.ndim} dimensions."
         )
 
+    # Ensure time is the first dimension
     if da[x_name].ndim == 1 and da[y_name].ndim == 1:
-        ret = ret.transpose(time_name, y_name, x_name)
-    else:
-        current_dims = list(ret.dims)
-        if current_dims[0] != time_name:
-            current_dims.remove(time_name)
-            new_order = [time_name] + current_dims
-            ret = ret.transpose(*new_order)
-    return ret, crs_
+        da = da.transpose(time_name, y_name, x_name)
+    elif list(da.dims)[0] != time_name:
+        current_dims = list(da.dims)
+        current_dims.remove(time_name)
+        new_order = [time_name] + current_dims
+        da = da.transpose(*new_order)
+    return da, crs_
 
 
 def _guess_coord_name(da_coords, candidates, provided_name, coord_type_for_error):
@@ -314,20 +298,8 @@ def animate(
     y_name: str = None,
     crs=None,
     borders: gpd.GeoDataFrame | gpd.GeoSeries | None = None,
-    cmap="jet",
-    norm=None,
-    log=False,
-    qmin=0.01,
-    qmax=99.9,
-    vmin=None,
-    vmax=None,
-    time_format="%Y-%m-%dT%H",
-    upsample_ratio=4,
-    fps=24,
-    dpi=180,
-    n_jobs=None,
-    timeout="auto",
-    verbose=0,
+    verbose: int = 0,
+    **kwargs,
 ):
     """
     Creates an animation from an xarray DataArray.
@@ -351,24 +323,23 @@ def animate(
         borders (gpd.GeoDataFrame | gpd.GeoSeries | None, optional):
             Custom borders to use for plotting. If None, defaults to
             world borders. Defaults to None.
-        cmap (str, optional): Colormap for the plot. Defaults to "jet".
-        norm (matplotlib.colors.Normalize, optional): Custom normalization object.
-        log (bool, optional): Use logarithmic color scale. Defaults to False.
-        qmin (float, optional): Minimum quantile for color normalization.
-            Defaults to 0.01.
-        qmax (float, optional): Maximum quantile for color normalization.
-            Defaults to 99.9.
-        vmin (float, optional): Minimum value for color normalization. Overrides qmin.
-        vmax (float, optional): Maximum value for color normalization. Overrides qmax.
-        time_format (str, optional): Strftime format for time in titles.
-            Defaults to "%Y-%m-%dT%H".
-        upsample_ratio (int, optional): Factor to upsample data temporally.
-            Defaults to 4.
-        fps (int, optional): Frames per second for the video. Defaults to 24.
-        n_jobs (int, optional): Number of parallel jobs for frame generation.
-            Defaults to None (auto-determined).
         verbose (int, optional): Verbosity level for the Animation class.
             Defaults to 0.
+        **kwargs: Additional keyword arguments passed to the Animation class, including:
+            - cmap (str): Colormap for the plot. Defaults to "jet".
+            - norm (matplotlib.colors.Normalize): Custom normalization object.
+            - log (bool): Use logarithmic color scale. Defaults to False.
+            - qmin (float): Minimum quantile for color normalization. Defaults to 0.01.
+            - qmax (float): Maximum quantile for color normalization. Defaults to 99.9.
+            - vmin (float): Minimum value for color normalization. Overrides qmin.
+            - vmax (float): Maximum value for color normalization. Overrides qmax.
+            - time_format (str): Strftime format for time in titles. Defaults to "%Y-%m-%dT%H".
+            - upsample_ratio (int): Factor to upsample data temporally. Defaults to 4.
+            - fps (int): Frames per second for the video. Defaults to 24.
+            - n_jobs (int): Number of parallel jobs for frame generation.
+            - dpi (int): Dots per inch for the saved frames. Defaults to 180.
+            - timeout (str | int): Timeout for video creation. Defaults to 'auto'.
+
 
     .. code-block:: python
 
@@ -396,6 +367,7 @@ def animate(
     output_path = Path(path)
     output_path.parent.mkdir(exist_ok=True, parents=True)
     unit = da.attrs.get("unit", None) or da.attrs.get("units", None)
+    time_format = kwargs.get("time_format", "%Y-%m-%dT%H")
     time = da[actual_time_name].dt.strftime(time_format).values
     field = da.name or da.attrs.get("long_name")
     titles = [f"{field} · {t}" for t in time]
@@ -403,17 +375,6 @@ def animate(
         data=da.values,
         path=output_path,
         title=titles,
-        norm=norm,
-        log=log,
-        cmap=cmap,
-        qmin=qmin,
-        qmax=qmax,
-        vmin=vmin,
-        vmax=vmax,
-        upsample_ratio=upsample_ratio,
-        fps=fps,
         label=unit,
-        dpi=dpi,
-        timeout=timeout,
-        n_jobs=n_jobs,
+        **kwargs,
     )
