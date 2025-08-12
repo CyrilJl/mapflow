@@ -14,3 +14,35 @@
 ## Documentation
 
 The full documentation is available at [mapflow.readthedocs.io](https://mapflow.readthedocs.io).
+
+## Installation
+
+```bash
+pip install mapflow
+```
+
+Or:
+
+```bash
+conda install -c conda-forge -y mapflow
+```
+
+## Animate
+
+```python
+import xarray as xr
+from mapflow import animate
+
+ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
+animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4')
+```
+
+## Static plot
+
+```python
+import xarray as xr
+from mapflow import plot_da
+
+ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
+plot_da(da=ds['t2m'].isel(time=0))
+```
