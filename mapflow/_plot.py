@@ -23,6 +23,18 @@ class PlotModel:
         crs: Coordinate Reference System. Defaults to 4326.
         borders (gpd.GeoDataFrame | gpd.GeoSeries | None): Custom borders to use.
             If None, defaults to world borders from a packaged GeoPackage.
+
+    .. code-block:: python
+
+        import xarray as xr
+        from mapflow import PlotModel
+
+        ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
+        da = ds["t2m"].isel(time=0)
+
+        p = PlotModel(x=da.longitude, y=da.latitude)
+        p(da)
+
     """
 
     def __init__(self, x, y, crs=4326, borders=None):
@@ -255,8 +267,13 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, **kwargs):
             - show: Whether to display the plot
 
     Example:
-        >>> plot_da(temperature_data, cmap='coolwarm', title='Surface Temperature')
-        >>> plot_da(precipitation_data, log=True, cmap='Blues', label='mm/day')
+        .. code-block:: python
+
+            import xarray as xr
+            from mapflow import plot_da
+
+            ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
+            plot_da(da=ds['t2m'].isel(time=0))
 
     See Also:
         PlotModel: The underlying plotting class used by this function

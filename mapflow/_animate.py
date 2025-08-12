@@ -30,6 +30,18 @@ class Animation:
         borders (gpd.GeoDataFrame | gpd.GeoSeries | None, optional):
             Custom borders to use for plotting. If None, defaults to
             world borders. Defaults to None.
+
+    .. code-block:: python
+
+        import xarray as xr
+        from mapflow import Animation
+
+        ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
+        da = ds["t2m"].isel(time=slice(120))
+
+        animation = Animation(x=da.longitude, y=da.latitude, verbose=1)
+        animation(da, "animation.mp4")
+
     """
 
     def __init__(self, x, y, crs=4326, verbose=0, borders=None):
@@ -357,6 +369,15 @@ def animate(
             Defaults to None (auto-determined).
         verbose (int, optional): Verbosity level for the Animation class.
             Defaults to 0.
+
+    .. code-block:: python
+
+        import xarray as xr
+        from mapflow import animate
+
+        ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
+        animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4')
+
     """
     # Guess coordinate names if not provided
     actual_time_name = _guess_coord_name(da.coords, TIME_NAME_CANDIDATES, time_name, "time")
