@@ -2,6 +2,7 @@ import os
 from tempfile import TemporaryDirectory
 
 import geopandas as gpd
+import numpy as np
 import pytest
 import xarray as xr
 from shapely.geometry import box
@@ -13,6 +14,57 @@ from mapflow import animate
 def air_data():
     ds = xr.tutorial.open_dataset("air_temperature")
     return ds["air"].isel(time=slice(0, 48))
+
+
+@pytest.fixture
+def air_data_2d_coordinates():
+    ntime = 36
+    ny = 50
+    nx = 50
+    # Create a basic rectilinear grid first
+    x = np.linspace(-10, 10, nx)
+    y = np.linspace(-10, 10, ny)
+    xx, yy = np.meshgrid(x, y)
+
+    # Warp the grid to make it non-rectilinear
+    # Using some arbitrary distortion functions
+    lon = xx + 2 * np.sin(yy / 5)  # longitude varies with y position
+    lat = yy + 1.5 * np.cos(xx / 4)  # latitude varies with x position
+
+    # Create random data
+    time_coords = np.arange(np.datetime64("2020-01-01"), np.datetime64("2020-01-01") + ntime)
+    data = np.random.rand(ntime, ny, nx)
+
+    # Create DataArray
+    da = xr.DataArray(
+        data,
+        dims=("time", "yc", "xc"),
+        coords={
+            "time": time_coords,
+            "lon": (("yc", "xc"), lon),
+            "lat": (("yc", "xc"), lat),
+        },
+    )
+
+    # Add coordinate metadata
+    da["lon"].attrs = {"units": "degrees_east", "standard_name": "longitude"}
+    da["lat"].attrs = {"units": "degrees_north", "standard_name": "latitude"}
+    da["time"].attrs = {"standard_name": "time"}
+
+    return da
+
+
+def test_animate_2d(air_data_2d_coordinates):
+    with TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/test_animation.mp4"
+        animate(
+            da=air_data_2d_coordinates,
+            path=path,
+            x_name="lon",
+            y_name="lat",
+            verbose=True,
+        )
+        assert os.path.exists(path)
 
 
 def test_animate(air_data):
