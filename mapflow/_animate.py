@@ -146,7 +146,7 @@ class Animation:
                     )
                 )
 
-            timeout = max(10, 0.1 * len(data)) if timeout == "auto" else timeout
+            timeout = max(20, 0.1 * len(data)) if timeout == "auto" else timeout
             # ffmpeg command to create the video
             self._create_video(tempdir, path, fps, timeout=timeout)
 
