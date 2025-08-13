@@ -29,11 +29,11 @@ conda install -c conda-forge -y mapflow
 
 ## Features
 
-- Automatically seeks for the coordinates names in xarray dataarray representing x, y and time, but can rely on user's input if it fails
-- Automatically seeks for the CRS of the data, and if absent relies on user's input
-- Establishes an automatic colorbar robust to outliers (but can process user's inputs)
-- Provides an integrated world borders, but can rely on user's input (gpd.GeoSeries or GeoDataFrame)
-- `plot_da` can be seen as one-line alternative for cartopy
+- **Automatic Coordinate Detection**: Identifies x, y, and time coordinates in xarray DataArrays, with fallback options for manual input if needed.  
+- **CRS Handling**: Detects the Coordinate Reference System (CRS) of the data or accepts user-defined CRS when unavailable.  
+- **Robust Colorbar**: Generates a colorbar that handles outliers effectively while allowing customization.  
+- **Built-in World Borders**: Includes default world border data but supports user-provided GeoSeries or GeoDataFrames.  
+- **Simplified Visualization**: The ``plot_da`` function provides a one-line alternative to cartopy for quick plotting.  
 
 ## Animate
 
