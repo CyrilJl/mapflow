@@ -5,21 +5,26 @@ on:
 
 jobs:
   test:
-    container:
-      image: mambaorg/micromamba:latest
-
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v2
 
-    - name: Set up Python environment
-      run: micromamba install xarray geopandas pooch matplotlib tqdm pytest ffmpeg netcdf4 pip
-      
+    - name: Set up Miniforge
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        miniforge-version: latest
+        activate-environment: test-env
+        python-version: 3.12
 
-    - name: Install package in development mode
-      run: pip install -e .
+    - name: Install dependencies
+      shell: bash -l {0}
+      run: |
+        mamba install -c conda-forge xarray geopandas pooch matplotlib tqdm pytest ffmpeg netcdf4
+        pip install -e .
 
     - name: Run pytest
-      run: pytest tests/ -v -s
+      shell: bash -l {0}
+      run: |
+        pytest tests/ -vv -s
