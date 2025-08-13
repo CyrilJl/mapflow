@@ -6,7 +6,7 @@ Welcome to mapflow's documentation!
 ``mapflow`` transforms 3D ``xr.DataArray`` into video files in one line of code.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    installation
