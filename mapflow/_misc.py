@@ -3,10 +3,6 @@ import warnings
 
 from pyproj import CRS
 
-X_NAME_CANDIDATES = ("x", "lon", "longitude")
-Y_NAME_CANDIDATES = ("y", "lat", "latitude")
-TIME_NAME_CANDIDATES = ("time", "t", "times")
-
 
 def check_ffmpeg():
     """Checks if ffmpeg is available on the system and outputs a warning if not."""
