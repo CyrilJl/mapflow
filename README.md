@@ -27,6 +27,14 @@ Or:
 conda install -c conda-forge -y mapflow
 ```
 
+## Features
+
+- Automatically seeks for the coordinates names in xarray dataarray representing x, y and time, but can rely on user's input if it fails
+- Automatically seeks for the CRS of the data, and if absent relies on user's input
+- Establishes an automatic colorbar robust to outliers (but can process user's inputs)
+- Provides an integrated world borders, but can rely on user's input (gpd.GeoSeries or GeoDataFrame)
+- `plot_da` can be seen as one-line alternative for cartopy
+
 ## Animate
 
 ```python
