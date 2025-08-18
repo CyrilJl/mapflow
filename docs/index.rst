@@ -8,6 +8,7 @@ Welcome to mapflow's documentation!
 .. toctree::
    :maxdepth: 1
    :caption: Contents:
+   :hidden:
 
    installation
    how_to_use
