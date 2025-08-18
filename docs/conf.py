@@ -32,7 +32,7 @@ html_static_path = ["../_static"]
 # html_extra_path = ['../_static/animation.mp4']
 html_logo = "../_static/logo.svg"
 html_theme_options = {
-    # "main_nav_links": {"Utilisation": "usage", "Modèles": "models", "Décodage Grib": "grib_defs"},
+    "main_nav_links": {"Installation": "installation", "How To Use": "how_to_use", "API Reference": "api"},
     "extra_header_link_icons": {
         "repository on GitHub": {
             "link": "https://github.com/CyrilJl/mapflow",
