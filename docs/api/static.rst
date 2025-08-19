@@ -8,10 +8,10 @@ This section provides the API reference for static plotting functions in ``mapfl
 .. admonition:: PlotModel
    :class: dropdown
 
-   .. autoclass:: mapflow._plot.PlotModel
+   .. autoclass:: mapflow.PlotModel
       :members: __call__
 
 .. admonition:: plot_da
    :class: dropdown
 
-   .. autofunction:: mapflow._plot.plot_da
+   .. autofunction:: mapflow.plot_da
