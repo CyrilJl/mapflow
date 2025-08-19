@@ -5,5 +5,17 @@ Animations
 
 This section provides the API reference for animation functions in ``mapflow``.
 
-.. automodule:: mapflow._animate
-   :members: Animation, animate
+.. admonition:: Animation
+   :class: dropdown
+
+   .. autoclass:: mapflow.Animation
+      :members: __call__
+      :undoc-members:
+      :show-inheritance:
+
+.. admonition:: animation
+   :class: dropdown
+
+   .. autofunction:: mapflow.animate
+      :undoc-members:
+      :show-inheritance:
