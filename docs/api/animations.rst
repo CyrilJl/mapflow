@@ -8,10 +8,10 @@ This section provides the API reference for animation functions in ``mapflow``.
 .. admonition:: Animation
    :class: dropdown
 
-   .. autoclass:: mapflow._animate.Animation
+   .. autoclass:: mapflow.Animation
       :members: __call__
 
 .. admonition:: animation
    :class: dropdown
 
-   .. autofunction:: mapflow._animate.animate
+   .. autofunction:: mapflow.animate
