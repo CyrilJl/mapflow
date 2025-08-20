@@ -35,7 +35,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 html_theme = "sphinxawesome_theme"
 html_permalinks = False
 html_static_path = ["../_static"]
-html_logo = "../_static/logo.svg"
+html_logo = "../_static/logo.png"
 html_theme_options = {
     "main_nav_links": {"Installation": "installation", "How To Use": "how_to_use", "API Reference": "api"},
     "extra_header_link_icons": {
