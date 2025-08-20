@@ -75,7 +75,7 @@ class Animation:
         title=None,
         fps: int = 24,
         upsample_ratio: int = 2,
-        cmap="jet",
+        cmap="Reds",
         qmin=0.01,
         qmax=99.9,
         vmin=None,
@@ -86,6 +86,7 @@ class Animation:
         dpi=180,
         n_jobs=None,
         timeout="auto",
+        arrows_kwgs: dict = None,
     ):
         """
         Generates an animation from a sequence of 2D data arrays.
@@ -176,6 +177,7 @@ class Animation:
             n_jobs=n_jobs,
             timeout=timeout,
             subsample=subsample,
+            arrows_kwgs=arrows_kwgs,
         )
 
     def _animate(
@@ -319,7 +321,8 @@ class Animation:
         if u_da[x_name].ndim == 1:
             x, y = np.meshgrid(x, y)
 
-        plt.quiver(x, y, u_sub, v_sub)
+        arrows_kwgs = kwargs.get("arrows_kwgs", {})
+        plt.quiver(x, y, u_sub, v_sub, **arrows_kwgs)
         plt.savefig(frame_path, dpi=dpi, bbox_inches="tight", pad_inches=0.05)
         plt.clf()
         plt.close()
@@ -537,6 +540,7 @@ def animate_quiver(
     borders: gpd.GeoDataFrame | gpd.GeoSeries | None = None,
     verbose: int = 0,
     subsample: int = 1,
+    arrows_kwgs: dict = None,
     **kwargs,
 ):
     """
@@ -562,8 +566,9 @@ def animate_quiver(
         subsample (int, optional): The subsampling factor for the quiver arrows.
             For example, a value of 10 will plot one arrow for every 10 grid points.
             Defaults to 1.
+        arrows_kwgs: Additional arguments passed to `matplotlib.pyplot.quiver`.
         **kwargs: Additional keyword arguments passed to the Animation class, including:
-            - cmap (str): Colormap for the plot. Defaults to "jet".
+            - cmap (str): Colormap for the plot. Defaults to "Reds".
             - norm (matplotlib.colors.Normalize): Custom normalization object.
             - log (bool): Use logarithmic color scale. Defaults to False.
             - qmin (float): Minimum quantile for color normalization. Defaults to 0.01.
@@ -609,6 +614,7 @@ def animate_quiver(
     field = u.name or u.attrs.get("long_name")
     titles = [f"{field} · {t}" for t in time]
 
+    kwargs.setdefault("cmap", "Reds")
     animation.quiver(
         u=u,
         v=v,
@@ -616,5 +622,6 @@ def animate_quiver(
         title=titles,
         label=unit,
         subsample=subsample,
+        arrows_kwgs=arrows_kwgs,
         **kwargs,
     )

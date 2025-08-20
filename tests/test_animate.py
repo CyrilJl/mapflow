@@ -11,6 +11,11 @@ from mapflow import animate, animate_quiver
 
 
 @pytest.fixture
+def air_temperature_gradient_data() -> xr.Dataset:
+    return xr.tutorial.load_dataset("air_temperature_gradient")
+
+
+@pytest.fixture
 def air_data():
     ds = xr.tutorial.open_dataset("air_temperature")
     return ds["air"].isel(time=slice(0, 24))
@@ -67,12 +72,12 @@ def test_animate_2d(air_data_2d_coordinates):
         assert os.path.exists(path)
 
 
-def test_animate_quiver(air_data):
+def test_animate_quiver(air_temperature_gradient_data):
     with TemporaryDirectory() as tmpdir:
         path = f"{tmpdir}/test_animation_quiver.mp4"
         animate_quiver(
-            u=air_data,
-            v=air_data,
+            u=air_temperature_gradient_data["dTdx"],
+            v=air_temperature_gradient_data["dTdy"],
             path=path,
             x_name="lon",
             y_name="lat",
@@ -81,16 +86,31 @@ def test_animate_quiver(air_data):
         assert os.path.exists(path)
 
 
-def test_animate_quiver_subsample(air_data):
+def test_animate_quiver_subsample(air_temperature_gradient_data):
     with TemporaryDirectory() as tmpdir:
         path = f"{tmpdir}/test_animation_quiver_subsample.mp4"
         animate_quiver(
-            u=air_data,
-            v=air_data,
+            u=air_temperature_gradient_data["dTdx"],
+            v=air_temperature_gradient_data["dTdy"],
             path=path,
             x_name="lon",
             y_name="lat",
             subsample=5,
+            verbose=True,
+        )
+        assert os.path.exists(path)
+
+
+def test_animate_quiver_arrows_kwgs(air_temperature_gradient_data):
+    with TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/test_animation_quiver_arrows_kwgs.mp4"
+        animate_quiver(
+            u=air_temperature_gradient_data["dTdx"],
+            v=air_temperature_gradient_data["dTdy"],
+            path=path,
+            x_name="lon",
+            y_name="lat",
+            arrows_kwgs={"color": "blue"},
             verbose=True,
         )
         assert os.path.exists(path)

@@ -297,7 +297,9 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, **kwargs):
     p(data, **kwargs)
 
 
-def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1, show=True, **kwargs):
+def plot_da_quiver(
+    u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1, show=True, arrows_kwgs: dict = None, **kwargs
+):
     """
     Plots a quiver plot from two xarray DataArrays, representing the U and V
     components of a vector field.
@@ -321,12 +323,13 @@ def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1,
             For example, a value of 10 will plot one arrow for every 10 grid points.
             Defaults to 1.
         show: Whether to display the plot
+        arrows_kwgs: Additional arguments passed to `matplotlib.pyplot.quiver`.
         **kwargs: Additional arguments passed to PlotModel.__call__(), including:
             - figsize: Tuple (width, height) in inches
             - qmin/qmax: Quantile ranges for color scaling (0-100)
             - vmin/vmax: Explicit value ranges for color scaling
             - log: Whether to use logarithmic color scale
-            - cmap: Colormap name
+            - cmap: Colormap name. Defaults to "Reds".
             - norm: Custom normalization
             - shading: Color shading method
             - shrink: Colorbar shrink factor
@@ -363,6 +366,7 @@ def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1,
     magnitude = np.sqrt(u**2 + v**2)
     p = PlotModel(x=u[actual_x_name].values, y=u[actual_y_name].values, crs=crs_)
     data = p._process_data(magnitude.values)
+    kwargs.setdefault("cmap", "Reds")
     p(data, show=False, **kwargs)
 
     if subsample > 1:
@@ -385,6 +389,7 @@ def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1,
     if u[actual_x_name].ndim == 1:
         x, y = np.meshgrid(x, y)
 
-    plt.quiver(x, y, u_subsampled, v_subsampled)
+    arrows_kwgs = {} if arrows_kwgs is None else arrows_kwgs
+    plt.quiver(x, y, u_subsampled, v_subsampled, **arrows_kwgs)
     if show:
         plt.show()
