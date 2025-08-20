@@ -7,7 +7,7 @@ import pytest
 import xarray as xr
 from shapely.geometry import box
 
-from mapflow import animate
+from mapflow import animate, animate_quiver
 
 
 @pytest.fixture
@@ -62,6 +62,35 @@ def test_animate_2d(air_data_2d_coordinates):
             path=path,
             x_name="lon",
             y_name="lat",
+            verbose=True,
+        )
+        assert os.path.exists(path)
+
+
+def test_animate_quiver(air_data):
+    with TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/test_animation_quiver.mp4"
+        animate_quiver(
+            u=air_data,
+            v=air_data,
+            path=path,
+            x_name="lon",
+            y_name="lat",
+            verbose=True,
+        )
+        assert os.path.exists(path)
+
+
+def test_animate_quiver_subsample(air_data):
+    with TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/test_animation_quiver_subsample.mp4"
+        animate_quiver(
+            u=air_data,
+            v=air_data,
+            path=path,
+            x_name="lon",
+            y_name="lat",
+            subsample=5,
             verbose=True,
         )
         assert os.path.exists(path)

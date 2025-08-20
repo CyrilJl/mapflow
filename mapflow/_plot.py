@@ -295,3 +295,90 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, **kwargs):
     p = PlotModel(x=da[actual_x_name].values, y=da[actual_y_name].values, crs=crs_)
     data = p._process_data(da.values)
     p(data, **kwargs)
+
+
+def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1, **kwargs):
+    """
+    Plots a quiver plot from two xarray DataArrays, representing the U and V
+    components of a vector field.
+
+    The magnitude of the vector field is represented by a color mesh, and the
+    direction is shown with quiver arrows.
+
+    Args:
+        u (xr.DataArray): DataArray for the U-component of the vector field.
+        v (xr.DataArray): DataArray for the V-component of the vector field.
+        x_name (str, optional): Name of the x-coordinate dimension.
+            If None, will attempt to guess.
+        y_name (str, optional): Name of the y-coordinate dimension.
+            If None, will attempt to guess.
+        crs: Coordinate Reference System. Can be:
+            - EPSG code (e.g., 4326 for WGS84)
+            - PROJ string
+            - pyproj.CRS object
+            - If the DataArray has a 'crs' attribute, that will be used by default
+        subsample (int, optional): The subsampling factor for the quiver arrows.
+            For example, a value of 10 will plot one arrow for every 10 grid points.
+            Defaults to 1.
+        **kwargs: Additional arguments passed to PlotModel.__call__(), including:
+            - figsize: Tuple (width, height) in inches
+            - qmin/qmax: Quantile ranges for color scaling (0-100)
+            - vmin/vmax: Explicit value ranges for color scaling
+            - log: Whether to use logarithmic color scale
+            - cmap: Colormap name
+            - norm: Custom normalization
+            - shading: Color shading method
+            - shrink: Colorbar shrink factor
+            - label: Colorbar label
+            - title: Plot title
+            - show: Whether to display the plot
+
+    Example:
+        .. code-block:: python
+
+            import xarray as xr
+            from mapflow import plot_da_quiver
+
+            ds = xr.tutorial.open_dataset("air_temperature")
+            da = ds['air'].isel(time=0)
+            u = xr.DataArray(da.values, coords=da.coords, dims=da.dims)
+            v = xr.DataArray(da.values, coords=da.coords, dims=da.dims)
+            plot_da_quiver(u, v, subsample=5)
+
+    See Also:
+        PlotModel: The underlying plotting class used by this function.
+    """
+    actual_x_name = guess_coord_name(u.coords, X_NAME_CANDIDATES, x_name, "x")
+    actual_y_name = guess_coord_name(u.coords, Y_NAME_CANDIDATES, y_name, "y")
+
+    if u[actual_x_name].ndim == 1 and u[actual_y_name].ndim == 1:
+        u = u.sortby(actual_x_name).sortby(actual_y_name)
+        v = v.sortby(actual_x_name).sortby(actual_y_name)
+
+    crs_ = process_crs(u, crs)
+    if crs_.is_geographic:
+        u[actual_x_name] = xr.where(u[actual_x_name] > 180, u[actual_x_name] - 360, u[actual_x_name])
+        v[actual_x_name] = xr.where(v[actual_x_name] > 180, v[actual_x_name] - 360, v[actual_x_name])
+
+    magnitude = np.sqrt(u**2 + v**2)
+    p = PlotModel(x=u[actual_x_name].values, y=u[actual_y_name].values, crs=crs_)
+    data = p._process_data(magnitude.values)
+    p(data, **kwargs)
+
+    if subsample > 1:
+        u_subsampled = u.isel({actual_y_name: slice(None, None, subsample), actual_x_name: slice(None, None, subsample)})
+        v_subsampled = v.isel({actual_y_name: slice(None, None, subsample), actual_x_name: slice(None, None, subsample)})
+        x = u_subsampled[actual_x_name].values
+        y = u_subsampled[actual_y_name].values
+        u_subsampled = u_subsampled.values
+        v_subsampled = v_subsampled.values
+    else:
+        x = u[actual_x_name].values
+        y = u[actual_y_name].values
+        u_subsampled = u.values
+        v_subsampled = v.values
+
+    if u[actual_x_name].ndim == 1:
+        x, y = np.meshgrid(x, y)
+
+    plt.quiver(x, y, u_subsampled, v_subsampled)
