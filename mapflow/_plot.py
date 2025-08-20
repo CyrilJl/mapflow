@@ -366,8 +366,12 @@ def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1,
     p(data, **kwargs)
 
     if subsample > 1:
-        u_subsampled = u.isel({actual_y_name: slice(None, None, subsample), actual_x_name: slice(None, None, subsample)})
-        v_subsampled = v.isel({actual_y_name: slice(None, None, subsample), actual_x_name: slice(None, None, subsample)})
+        u_subsampled = u.isel(
+            {actual_y_name: slice(None, None, subsample), actual_x_name: slice(None, None, subsample)}
+        )
+        v_subsampled = v.isel(
+            {actual_y_name: slice(None, None, subsample), actual_x_name: slice(None, None, subsample)}
+        )
         x = u_subsampled[actual_x_name].values
         y = u_subsampled[actual_y_name].values
         u_subsampled = u_subsampled.values
