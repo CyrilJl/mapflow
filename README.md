@@ -5,7 +5,7 @@
 
 [![PyPI version](https://badge.fury.io/py/mapflow.svg)](https://badge.fury.io/py/mapflow)
 [![Conda version](https://anaconda.org/conda-forge/mapflow/badges/version.svg)](https://anaconda.org/conda-forge/mapflow)
-[![Run Pytest](https://github.com/CyrilJl/mapflow/actions/workflows/pytest.yaml/badge.svg)](https://github.com/CyrilJl/mapflow/actions/workflows/pytest.yaml)
+[![CI](https://github.com/CyrilJl/mapflow/actions/workflows/CI.yaml/badge.svg)](https://github.com/CyrilJl/mapflow/actions/workflows/CI.yaml)
 [![Documentation Status](https://readthedocs.org/projects/mapflow/badge/?version=latest)](https://mapflow.readthedocs.io/en/latest/?badge=latest)
 </div>
 
