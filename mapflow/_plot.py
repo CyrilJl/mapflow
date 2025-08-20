@@ -297,7 +297,7 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, **kwargs):
     p(data, **kwargs)
 
 
-def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1, **kwargs):
+def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1, show=True, **kwargs):
     """
     Plots a quiver plot from two xarray DataArrays, representing the U and V
     components of a vector field.
@@ -320,6 +320,7 @@ def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1,
         subsample (int, optional): The subsampling factor for the quiver arrows.
             For example, a value of 10 will plot one arrow for every 10 grid points.
             Defaults to 1.
+        show: Whether to display the plot
         **kwargs: Additional arguments passed to PlotModel.__call__(), including:
             - figsize: Tuple (width, height) in inches
             - qmin/qmax: Quantile ranges for color scaling (0-100)
@@ -331,7 +332,6 @@ def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1,
             - shrink: Colorbar shrink factor
             - label: Colorbar label
             - title: Plot title
-            - show: Whether to display the plot
 
     Example:
         .. code-block:: python
@@ -363,7 +363,7 @@ def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1,
     magnitude = np.sqrt(u**2 + v**2)
     p = PlotModel(x=u[actual_x_name].values, y=u[actual_y_name].values, crs=crs_)
     data = p._process_data(magnitude.values)
-    p(data, **kwargs)
+    p(data, show=False, **kwargs)
 
     if subsample > 1:
         u_subsampled = u.isel(
@@ -386,3 +386,5 @@ def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1,
         x, y = np.meshgrid(x, y)
 
     plt.quiver(x, y, u_subsampled, v_subsampled)
+    if show:
+        plt.show()
