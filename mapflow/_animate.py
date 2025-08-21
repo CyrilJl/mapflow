@@ -160,6 +160,7 @@ class Animation:
         dpi=180,
         n_jobs=None,
         timeout="auto",
+        **kwargs,
     ):
         self._animate(
             data=(u, v),
@@ -181,6 +182,7 @@ class Animation:
             vmin=vmin,
             vmax=vmax,
             log=log,
+            **kwargs,
         )
 
     def _animate(
@@ -324,7 +326,10 @@ class Animation:
         if u_da[x_name].ndim == 1:
             x, y = np.meshgrid(x, y)
 
-        plt.quiver(x, y, u_sub, v_sub)
+        arrows_kwgs = kwargs.get("arrows_kwgs")
+        if arrows_kwgs is None:
+            arrows_kwgs = {}
+        plt.quiver(x, y, u_sub, v_sub, **arrows_kwgs)
         plt.savefig(frame_path, dpi=dpi, bbox_inches="tight", pad_inches=0.05)
         plt.clf()
         plt.close()
@@ -543,6 +548,7 @@ def animate_quiver(
     borders: gpd.GeoDataFrame | gpd.GeoSeries | None = None,
     verbose: int = 0,
     subsample: int = 1,
+    arrows_kwgs: dict = None,
     **kwargs,
 ):
     """
@@ -568,6 +574,8 @@ def animate_quiver(
         subsample (int, optional): The subsampling factor for the quiver arrows.
             For example, a value of 10 will plot one arrow for every 10 grid points.
             Defaults to 1.
+        arrows_kwgs (dict, optional): Additional keyword arguments passed to
+            `matplotlib.pyplot.quiver`. Defaults to None.
         **kwargs: Additional keyword arguments passed to the Animation class, including:
             - cmap (str): Colormap for the plot. Defaults to "jet".
             - norm (matplotlib.colors.Normalize): Custom normalization object.
@@ -623,5 +631,6 @@ def animate_quiver(
         title=titles,
         label=unit,
         subsample=subsample,
+        arrows_kwgs=arrows_kwgs,
         **kwargs,
     )
