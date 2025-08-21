@@ -31,9 +31,7 @@ def plot_da_quiver(
     arrows_kwgs: dict = None,
     **kwargs,
 ):
-    """
-    Plots a quiver plot from two xarray DataArrays, representing the U and V
-    components of a vector field.
+    """Plots a quiver plot from two xarray DataArrays.
 
     The magnitude of the vector field is represented by a color mesh, and the
     direction is shown with quiver arrows.
@@ -42,31 +40,29 @@ def plot_da_quiver(
         u (xr.DataArray): DataArray for the U-component of the vector field.
         v (xr.DataArray): DataArray for the V-component of the vector field.
         x_name (str, optional): Name of the x-coordinate dimension.
-            If None, will attempt to guess.
+            If None, will attempt to guess from `["x", "lon", "longitude"]`.
         y_name (str, optional): Name of the y-coordinate dimension.
-            If None, will attempt to guess.
-        crs: Coordinate Reference System. Can be:
-            - EPSG code (e.g., 4326 for WGS84)
-            - PROJ string
-            - pyproj.CRS object
-            - If the DataArray has a 'crs' attribute, that will be used by default
+            If None, will attempt to guess from `["y", "lat", "latitude"]`.
+        crs (int | str | CRS, optional): Coordinate Reference System. Can be an EPSG code,
+            a PROJ string, or a pyproj.CRS object. If the DataArray has a 'crs'
+            attribute, that will be used. Defaults to 4326 (WGS84).
         subsample (int, optional): The subsampling factor for the quiver arrows.
             For example, a value of 10 will plot one arrow for every 10 grid points.
             Defaults to 1.
-        show: Whether to display the plot
+        show (bool, optional): Whether to display the plot. Defaults to True.
         arrows_kwgs (dict, optional): Additional keyword arguments passed to
             `matplotlib.pyplot.quiver`. Defaults to None.
-        **kwargs: Additional arguments passed to PlotModel.__call__(), including:
-            - figsize: Tuple (width, height) in inches
-            - qmin/qmax: Quantile ranges for color scaling (0-100)
-            - vmin/vmax: Explicit value ranges for color scaling
-            - log: Whether to use logarithmic color scale
-            - cmap: Colormap name
-            - norm: Custom normalization
-            - shading: Color shading method
-            - shrink: Colorbar shrink factor
-            - label: Colorbar label
-            - title: Plot title
+        **kwargs: Additional arguments passed to `PlotModel.__call__`, including:
+            - `figsize` (tuple, optional): Figure size (width, height) in inches.
+            - `qmin`/`qmax` (float, optional): Quantile ranges for color scaling.
+            - `vmin`/`vmax` (float, optional): Explicit value ranges for color scaling.
+            - `log` (bool, optional): Whether to use a logarithmic color scale.
+            - `cmap` (str, optional): Colormap name.
+            - `norm` (matplotlib.colors.Normalize, optional): Custom normalization object.
+            - `shading` (str, optional): Color shading method.
+            - `shrink` (float, optional): Colorbar shrink factor.
+            - `label` (str, optional): Colorbar label.
+            - `title` (str, optional): Plot title.
 
     Example:
         .. code-block:: python
@@ -78,7 +74,7 @@ def plot_da_quiver(
             plot_da_quiver(u=ds["dTdx"], v=ds["dTdy"], subsample=4)
 
     See Also:
-        PlotModel: The underlying plotting class used by this function.
+        :class:`PlotModel`: The underlying plotting class used by this function.
     """
     actual_x_name = guess_coord_name(u.coords, X_NAME_CANDIDATES, x_name, "x")
     actual_y_name = guess_coord_name(u.coords, Y_NAME_CANDIDATES, y_name, "y")
@@ -125,6 +121,8 @@ def plot_da_quiver(
 
 
 class QuiverAnimation(Animation):
+    """A class for creating quiver animations from 3D data with geographic borders."""
+
     def quiver(
         self,
         u,
@@ -148,6 +146,30 @@ class QuiverAnimation(Animation):
         timeout="auto",
         **kwargs,
     ):
+        """Generates a quiver animation from two 3D data arrays.
+
+        Args:
+            u (xr.DataArray): 3D DataArray for the U-component of the vector field.
+            v (xr.DataArray): 3D DataArray for the V-component of the vector field.
+            path (str | Path): The output path for the generated video file.
+            subsample (int, optional): Subsampling factor for quiver arrows. Defaults to 1.
+            figsize (tuple, optional): Figure size (width, height) in inches.
+            title (str | list[str], optional): Title for the plot.
+            fps (int, optional): Frames per second for the output video. Defaults to 24.
+            upsample_ratio (int, optional): Factor to upsample data for smoother animation. Defaults to 2.
+            cmap (str, optional): Colormap for the plot. Defaults to "jet".
+            qmin (float, optional): Minimum quantile for color normalization. Defaults to 0.01.
+            qmax (float, optional): Maximum quantile for color normalization. Defaults to 99.9.
+            vmin (float, optional): Minimum value for color normalization.
+            vmax (float, optional): Maximum value for color normalization.
+            norm (matplotlib.colors.Normalize, optional): Custom normalization object.
+            log (bool, optional): Whether to use a logarithmic color scale. Defaults to False.
+            label (str, optional): Label for the colorbar.
+            dpi (int, optional): Dots per inch for saved frames. Defaults to 180.
+            n_jobs (int, optional): Number of parallel jobs for frame generation.
+            timeout (int | str, optional): Timeout for the ffmpeg command. Defaults to "auto".
+            **kwargs: Additional keyword arguments.
+        """
         magnitude = np.sqrt(u**2 + v**2)
         norm = self.plot._norm(
             magnitude.values,
@@ -294,21 +316,21 @@ def animate_quiver(
     arrows_kwgs: dict = None,
     **kwargs,
 ):
-    """
-    Creates a quiver animation from two xarray DataArrays.
+    """Creates a quiver animation from two xarray DataArrays.
 
     Args:
         u (xr.DataArray): Input DataArray for the U-component with at least time, x, and y dimensions.
         v (xr.DataArray): Input DataArray for the V-component with at least time, x, and y dimensions.
         path (str): Output path for the video file. Supported formats are avi, mov and mp4.
         time_name (str, optional): Name of the time coordinate in `da`. If None,
-            it's guessed from ['time', 't', 'times']. Defaults to None.
+            it's guessed from `["time", "t", "times"]`. Defaults to None.
         x_name (str, optional): Name of the x-coordinate (e.g., longitude) in `da`.
-            If None, it's guessed from ['x', 'lon', 'longitude']. Defaults to None.
+            If None, it's guessed from `["x", "lon", "longitude"]`. Defaults to None.
         y_name (str, optional): Name of the y-coordinate (e.g., latitude) in `da`.
-            If None, it's guessed from ['y', 'lat', 'latitude']. Defaults to None.
+            If None, it's guessed from `["y", "lat", "latitude"]`. Defaults to None.
         crs (int | str | CRS, optional): Coordinate Reference System of the data.
             Defaults to 4326 (WGS84).
+        field_name (str, optional): Name of the field to be displayed in the title.
         borders (gpd.GeoDataFrame | gpd.GeoSeries | None, optional):
             Custom borders to use for plotting. If None, defaults to
             world borders. Defaults to None.
@@ -319,20 +341,20 @@ def animate_quiver(
             Defaults to 1.
         arrows_kwgs (dict, optional): Additional keyword arguments passed to
             `matplotlib.pyplot.quiver`. Defaults to None.
-        **kwargs: Additional keyword arguments passed to the Animation class, including:
-            - cmap (str): Colormap for the plot. Defaults to "jet".
-            - norm (matplotlib.colors.Normalize): Custom normalization object.
-            - log (bool): Use logarithmic color scale. Defaults to False.
-            - qmin (float): Minimum quantile for color normalization. Defaults to 0.01.
-            - qmax (float): Maximum quantile for color normalization. Defaults to 99.9.
-            - vmin (float): Minimum value for color normalization. Overrides qmin.
-            - vmax (float): Maximum value for color normalization. Overrides qmax.
-            - time_format (str): Strftime format for time in titles. Defaults to "%Y-%m-%dT%H".
-            - upsample_ratio (int): Factor to upsample data temporally. Defaults to 4.
-            - fps (int): Frames per second for the video. Defaults to 24.
-            - n_jobs (int): Number of parallel jobs for frame generation.
-            - dpi (int): Dots per inch for the saved frames. Defaults to 180.
-            - timeout (str | int): Timeout for video creation. Defaults to 'auto'.
+        **kwargs: Additional keyword arguments passed to the `QuiverAnimation` class, including:
+            - `cmap` (str, optional): Colormap for the plot.
+            - `norm` (matplotlib.colors.Normalize, optional): Custom normalization object.
+            - `log` (bool, optional): Use logarithmic color scale.
+            - `qmin` (float, optional): Minimum quantile for color normalization.
+            - `qmax` (float, optional): Maximum quantile for color normalization.
+            - `vmin` (float, optional): Minimum value for color normalization.
+            - `vmax` (float, optional): Maximum value for color normalization.
+            - `time_format` (str, optional): Strftime format for time in titles.
+            - `upsample_ratio` (int, optional): Factor to upsample data temporally.
+            - `fps` (int, optional): Frames per second for the video.
+            - `n_jobs` (int, optional): Number of parallel jobs for frame generation.
+            - `dpi` (int, optional): Dots per inch for the saved frames.
+            - `timeout` (str | int, optional): Timeout for video creation.
 
     Example:
         .. code-block:: python
@@ -342,6 +364,9 @@ def animate_quiver(
 
             ds = xr.tutorial.load_dataset("air_temperature_gradient")
             animate_quiver(u=ds["dTdx"], v=ds["dTdy"], path='animation.mkv', subsample=3)
+
+    See Also:
+        :class:`QuiverAnimation`: The underlying animation class used by this function.
     """
     actual_time_name = guess_coord_name(u.coords, TIME_NAME_CANDIDATES, time_name, "time")
     actual_x_name = guess_coord_name(u.coords, X_NAME_CANDIDATES, x_name, "x")

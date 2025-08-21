@@ -5,18 +5,15 @@ Static plots
 
 This section provides the API reference for static plotting functions in ``mapflow``.
 
-.. admonition:: PlotModel
-   :class: dropdown
+.. dropdown:: PlotModel
 
    .. autoclass:: mapflow.PlotModel
       :members: __call__
 
-.. admonition:: plot_da
-   :class: dropdown
+.. dropdown:: plot_da
 
    .. autofunction:: mapflow.plot_da
 
-.. admonition:: plot_da_quiver
-   :class: dropdown
+.. dropdown:: plot_da_quiver
 
    .. autofunction:: mapflow.plot_da_quiver
