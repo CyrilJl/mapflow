@@ -339,11 +339,8 @@ def plot_da_quiver(u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1,
             import xarray as xr
             from mapflow import plot_da_quiver
 
-            ds = xr.tutorial.open_dataset("air_temperature")
-            da = ds['air'].isel(time=0)
-            u = xr.DataArray(da.values, coords=da.coords, dims=da.dims)
-            v = xr.DataArray(da.values, coords=da.coords, dims=da.dims)
-            plot_da_quiver(u, v, subsample=5)
+            ds = xr.tutorial.load_dataset("air_temperature_gradient").isel(time=0)
+            plot_da_quiver(u=ds["dTdx"], v=ds["dTdy"], subsample=4)
 
     See Also:
         PlotModel: The underlying plotting class used by this function.

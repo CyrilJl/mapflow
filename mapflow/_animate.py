@@ -589,9 +589,8 @@ def animate_quiver(
             import xarray as xr
             from mapflow import animate_quiver
 
-            ds = xr.tutorial.open_dataset("air_temperature")
-            da = ds['air'].isel(time=slice(0, 24))
-            animate_quiver(u=da, v=da, path='animation.mp4', subsample=5)
+            ds = xr.tutorial.load_dataset("air_temperature_gradient")
+            animate_quiver(u=ds["dTdx"], v=ds["dTdy"], path='animation.mkv', subsample=3)
     """
     actual_time_name = _guess_coord_name(u.coords, TIME_NAME_CANDIDATES, time_name, "time")
     actual_x_name = _guess_coord_name(u.coords, X_NAME_CANDIDATES, x_name, "x")
