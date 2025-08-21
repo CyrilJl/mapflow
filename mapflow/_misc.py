@@ -1,6 +1,6 @@
 import subprocess
 import warnings
-
+import xarray as xr
 from pyproj import CRS
 
 X_NAME_CANDIDATES = ("x", "lon", "longitude")
@@ -52,8 +52,6 @@ def process_crs(da, crs):
 
 
 def check_da(da, time_name, x_name, y_name, crs):
-    import xarray as xr
-
     if not isinstance(da, xr.DataArray):
         raise TypeError(f"Expected xarray.DataArray, got {type(da)}")
     for dim in (x_name, y_name, time_name):
