@@ -12,7 +12,7 @@ from pyproj import CRS
 from tqdm.auto import tqdm
 
 from ._misc import TIME_NAME_CANDIDATES, X_NAME_CANDIDATES, Y_NAME_CANDIDATES
-from ._plot import PlotModel, plot_da_quiver
+from ._plot import PlotModel
 
 
 class Animation:
@@ -176,6 +176,11 @@ class Animation:
             n_jobs=n_jobs,
             timeout=timeout,
             subsample=subsample,
+            qmin=qmin,
+            qmax=qmax,
+            vmin=vmin,
+            vmax=vmax,
+            log=log,
         )
 
     def _animate(
@@ -534,6 +539,7 @@ def animate_quiver(
     x_name: str = None,
     y_name: str = None,
     crs=None,
+    field_name: str = None,
     borders: gpd.GeoDataFrame | gpd.GeoSeries | None = None,
     verbose: int = 0,
     subsample: int = 1,
@@ -606,8 +612,10 @@ def animate_quiver(
     unit = u.attrs.get("unit", None) or u.attrs.get("units", None)
     time_format = kwargs.get("time_format", "%Y-%m-%dT%H")
     time = u[actual_time_name].dt.strftime(time_format).values
-    field = u.name or u.attrs.get("long_name")
-    titles = [f"{field} · {t}" for t in time]
+    if field_name is None:
+        titles = [f"{t}" for t in time]
+    else:
+        titles = [f"{field_name} · {t}" for t in time]
 
     animation.quiver(
         u=u,

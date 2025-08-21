@@ -4,6 +4,7 @@ from tempfile import TemporaryDirectory
 import geopandas as gpd
 import numpy as np
 import pytest
+import rioxarray as rio
 import xarray as xr
 from shapely.geometry import box
 
@@ -14,6 +15,14 @@ from mapflow import animate, animate_quiver
 def air_data():
     ds = xr.tutorial.open_dataset("air_temperature")
     return ds["air"].isel(time=slice(0, 8))
+
+
+@pytest.fixture
+def air_temperature_gradient_data() -> xr.Dataset:
+    ds = xr.tutorial.load_dataset("air_temperature_gradient").isel(time=slice(0, 12))
+    ds.rio.set_spatial_dims("lon", "lat", inplace=True)
+    ds.rio.write_crs("EPSG:4326", inplace=True)
+    return ds
 
 
 @pytest.fixture
@@ -67,15 +76,15 @@ def test_animate_2d(air_data_2d_coordinates):
         assert os.path.exists(path)
 
 
-def test_animate_quiver(air_data):
+def test_animate_quiver(air_temperature_gradient_data):
     with TemporaryDirectory() as tmpdir:
         path = f"{tmpdir}/test_animation_quiver.mp4"
         animate_quiver(
-            u=air_data,
-            v=air_data,
+            u=air_temperature_gradient_data["dTdx"],
+            v=air_temperature_gradient_data["dTdy"],
             path=path,
-            x_name="lon",
-            y_name="lat",
+            field_name="Temperature Gradient",
+            cmap="Reds",
             verbose=True,
         )
         assert os.path.exists(path)

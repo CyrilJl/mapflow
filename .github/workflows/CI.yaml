@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       shell: bash -l {0}
       run: |
-        mamba install -c conda-forge xarray geopandas pooch matplotlib tqdm pytest ffmpeg netcdf4
+        mamba install -c conda-forge xarray geopandas pooch matplotlib tqdm pytest ffmpeg netcdf4 rioxarray
         pip install -e .
 
     - name: Run pytest
