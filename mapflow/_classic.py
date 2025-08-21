@@ -334,6 +334,7 @@ class Animation:
         animation(da, "animation.mp4")
 
     """
+
     def __init__(self, x, y, crs=4326, verbose=0, borders=None):
         self.plot = PlotModel(x=x, y=y, crs=crs, borders=borders)
         self.verbose = verbose
