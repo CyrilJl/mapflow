@@ -69,3 +69,4 @@ html_theme_options = {
     },
 }
 pygments_style = "igor"
+html_favicon = "../_static/logo.png"
