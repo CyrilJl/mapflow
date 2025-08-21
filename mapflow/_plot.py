@@ -298,7 +298,7 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, **kwargs):
 
 
 def plot_da_quiver(
-    u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1, show=True, arrows_kwgs: dict = None, **kwargs
+    u, v, x_name=None, y_name=None, crs=4326, subsample: int = 1, show=True, arrows_kwgs: dict = None, **kwargs,
 ):
     """
     Plots a quiver plot from two xarray DataArrays, representing the U and V
