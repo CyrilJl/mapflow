@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mapflow"
-version = "0.2.6"
+version = "0.2.7"
 description = "A Python library to export xarray.DataArray as video files"
 authors = [{ name = "Cyril Joly" }]
 license = { text = "MIT" }
@@ -16,6 +16,7 @@ dependencies = ["xarray", "matplotlib", "geopandas", "tqdm"]
 
 [project.urls]
 Homepage = "https://github.com/CyrilJl/mapflow"
+Documentation = "https://mapflow.readthedocs.io"
 
 [tool.ruff]
 line-length = 120
