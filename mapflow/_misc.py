@@ -22,9 +22,21 @@ def check_ffmpeg():
 
 
 def guess_coord_name(da_coords, candidates, provided_name, coord_type_for_error) -> str:
-    """
-    Guesses the coordinate name if not provided.
+    """Guesses the coordinate name if not provided.
+
     Iterates through da_coords, compares lowercased names with candidates.
+
+    Args:
+        da_coords (list): The coordinates from a DataArray.
+        candidates (tuple): Plausible names for the coordinate.
+        provided_name (str or None): The name given by the user, if any.
+        coord_type_for_error (str): The type of coordinate being searched for, used for error messages.
+
+    Returns:
+        str: The identified coordinate name.
+
+    Raises:
+        ValueError: If the coordinate name cannot be guessed.
     """
     if provided_name is not None:
         return provided_name
@@ -43,6 +55,18 @@ def guess_coord_name(da_coords, candidates, provided_name, coord_type_for_error)
 
 
 def process_crs(da, crs):
+    """Processes the Coordinate Reference System (CRS).
+
+    If a CRS is not provided, it attempts to extract it from the DataArray's
+    `spatial_ref` coordinate. Defaults to EPSG:4326 if not found.
+
+    Args:
+        da (xr.DataArray): The input DataArray.
+        crs (int | str | CRS | None): The user-provided CRS.
+
+    Returns:
+        CRS: A pyproj.CRS object.
+    """
     if crs is None:
         if "spatial_ref" in da.coords:
             crs = da.spatial_ref.attrs.get("crs_wkt", 4326)
@@ -52,6 +76,26 @@ def process_crs(da, crs):
 
 
 def check_da(da, time_name, x_name, y_name, crs):
+    """Validates and preprocesses the input DataArray.
+
+    This function performs several checks and modifications:
+    - Ensures the input is an xarray.DataArray.
+    - Verifies that the specified time, x, and y coordinates exist.
+    - Processes the CRS.
+    - Wraps longitudes to the -180 to 180 range for geographic CRS.
+    - Sorts the DataArray by its coordinates.
+    - Ensures the DataArray is 3-dimensional and transposes it to (`time`, `y`, `x`).
+
+    Args:
+        da (xr.DataArray): The DataArray to check.
+        time_name (str): The name of the time coordinate.
+        x_name (str): The name of the x-coordinate.
+        y_name (str): The name of the y-coordinate.
+        crs (int | str | CRS | None): The user-provided CRS.
+
+    Returns:
+        tuple[xr.DataArray, CRS]: A tuple containing the processed DataArray and the CRS object.
+    """
     if not isinstance(da, xr.DataArray):
         raise TypeError(f"Expected xarray.DataArray, got {type(da)}")
     for dim in (x_name, y_name, time_name):
