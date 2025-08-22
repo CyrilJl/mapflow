@@ -28,3 +28,8 @@ def test_plot_da_quiver(air_temperature_gradient_data):
     plt.close()
     plot_da_quiver(u, v, subsample=2, show=False)
     plt.close()
+
+
+def test_plot_da_diff(air_data):
+    plot_da(da=air_data.isel(time=0), diff=True, show=False)
+    plt.close()
