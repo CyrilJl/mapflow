@@ -354,6 +354,10 @@ class Animation:
     def __init__(self, x, y, crs=4326, verbose=0, borders=None):
         self.plot = PlotModel(x=x, y=y, crs=crs, borders=borders)
         self.verbose = verbose
+        self.fig = None
+        self.ax = None
+        self.im = None
+        self.cbar = None
 
     @staticmethod
     def upsample(data, ratio=5):
@@ -379,6 +383,48 @@ class Animation:
         else:
             raise ValueError("Title must be a string or a list of strings.")
 
+    def _init_plot(self, data, figsize, cmap, norm, label, shrink, shading):
+        """Initializes the plot figure, axes, and artists."""
+        self.fig, self.ax = plt.subplots(figsize=figsize)
+
+        if (self.plot.x.ndim == 1) and (self.plot.y.ndim == 1):
+            self.im = self.ax.imshow(
+                X=data,
+                cmap=cmap,
+                norm=norm,
+                origin="lower",
+                extent=(
+                    self.plot.x.min() - self.plot.dx / 2,
+                    self.plot.x.max() + self.plot.dx / 2,
+                    self.plot.y.min() - self.plot.dy / 2,
+                    self.plot.y.max() + self.plot.dy / 2,
+                ),
+                interpolation=shading,
+            )
+        else:
+            self.im = self.ax.pcolormesh(
+                self.plot.x,
+                self.plot.y,
+                data,
+                cmap=cmap,
+                norm=norm,
+                shading=shading,
+                rasterized=True,
+            )
+
+        self.cbar = self.fig.colorbar(self.im, ax=self.ax, shrink=shrink, label=label)
+        self.ax.set_xlim(self.plot.x.min() - self.plot.dx / 2, self.plot.x.max() + self.plot.dx / 2)
+        self.ax.set_ylim(self.plot.y.min() - self.plot.dy / 2, self.plot.y.max() + self.plot.dy / 2)
+        self.ax.add_collection(copy(self.plot.borders))
+        self.ax.set_aspect(self.plot.aspect)
+        self.ax.axis("off")
+        self.fig.tight_layout()
+
+    def _update_frame(self, data, title):
+        """Updates the plot with new data and title for a single frame."""
+        self.im.set_array(data)
+        self.ax.set_title(title)
+
     def __call__(
         self,
         data,
@@ -399,11 +445,12 @@ class Animation:
         dpi=180,
         n_jobs=None,
         timeout="auto",
+        **kwargs,
     ):
         """Generates an animation from a sequence of 2D data arrays.
 
         The method processes the input data, optionally upsamples it for smoother
-        transitions, generates individual frames in parallel, and then compiles
+        transitions, generates individual frames, and then compiles
         these frames into a video file using FFmpeg.
 
         Args:
@@ -432,101 +479,43 @@ class Animation:
             diff (bool, optional): Whether to use a divergent colormap. Defaults to False.
             label (str, optional): Label for the colorbar. Defaults to None.
             dpi (int, optional): Dots per inch for the saved frames. Defaults to 180.
-            n_jobs (int, optional): Number of parallel jobs for frame generation.
-                Defaults to 2/3 of CPU cores.
+            n_jobs (int, optional): This parameter is ignored, as the implementation
+                is now sequential. Kept for backward compatibility.
             timeout (int | str, optional): Timeout for the ffmpeg command in seconds.
                 Defaults to "auto", which sets the timeout to `max(20, 0.1 * data_len)`.
+            **kwargs: Additional arguments for plotting, such as `shrink` and `shading`.
         """
         if diff:
             cmap = "bwr"
         norm = self.plot._norm(data, vmin, vmax, qmin, qmax, norm, log, diff)
-        self._animate(
-            data=data,
-            path=path,
-            frame_generator=self._generate_frame,
-            figsize=figsize,
-            title=title,
-            fps=fps,
-            upsample_ratio=upsample_ratio,
-            cmap=cmap,
-            norm=norm,
-            label=label,
-            dpi=dpi,
-            n_jobs=n_jobs,
-            timeout=timeout,
-            diff=diff,
-        )
 
-    def _animate(
-        self,
-        data,
-        path,
-        frame_generator,
-        figsize: tuple = None,
-        title=None,
-        fps: int = 24,
-        upsample_ratio: int = 2,
-        cmap="jet",
-        norm=None,
-        label=None,
-        dpi=180,
-        n_jobs=None,
-        timeout="auto",
-        diff=False,
-    ):
         titles = self._process_title(title, upsample_ratio)
         data = self.upsample(data, ratio=upsample_ratio)
         data_len = len(data)
 
+        shrink = kwargs.get("shrink", 0.4)
+        shading = kwargs.get("shading", "nearest")
+
         with TemporaryDirectory() as tempdir:
             frame_paths = [Path(tempdir) / f"frame_{k:08d}.png" for k in range(data_len)]
-            args = []
-            for k in range(data_len):
-                frame_data = data[k]
-                arg_tuple = (
-                    frame_data,
-                    frame_paths[k],
-                    figsize,
-                    titles[k] if titles and k < len(titles) else None,
-                    cmap,
-                    norm,
-                    label,
-                    dpi,
-                    {"diff": diff},
-                )
-                args.append(arg_tuple)
 
-            n_jobs = int(2 / 3 * cpu_count()) if n_jobs is None else n_jobs
-            with Pool(processes=n_jobs) as pool:
-                list(
-                    tqdm(
-                        pool.imap(frame_generator, args),
-                        total=data_len,
-                        disable=(not self.verbose),
-                        desc="Frames generation",
-                        leave=False,
-                    )
-                )
+            self._init_plot(data[0], figsize, cmap, norm, label, shrink, shading)
+
+            for k in tqdm(
+                range(data_len),
+                disable=(not self.verbose),
+                desc="Frames generation",
+                leave=False,
+            ):
+                frame_data = data[k]
+                frame_title = titles[k] if titles and k < len(titles) else None
+                self._update_frame(frame_data, frame_title)
+                self.fig.savefig(frame_paths[k], dpi=dpi, bbox_inches="tight", pad_inches=0.05)
+
+            plt.close(self.fig)
 
             timeout = max(20, 0.1 * data_len) if timeout == "auto" else timeout
             self._create_video(tempdir, path, fps, timeout=timeout)
-
-    def _generate_frame(self, args):
-        """Generates a frame and saves it as a PNG."""
-        data_frame, frame_path, figsize, title, cmap, norm, label, dpi, kwargs = args
-        self.plot(
-            data=data_frame,
-            figsize=figsize,
-            title=title,
-            show=False,
-            cmap=cmap,
-            norm=norm,
-            label=label,
-            **kwargs,
-        )
-        plt.savefig(frame_path, dpi=dpi, bbox_inches="tight", pad_inches=0.05)
-        plt.clf()
-        plt.close()
 
     @staticmethod
     def _build_ffmpeg_cmd(tempdir, path, fps):
@@ -566,6 +555,8 @@ class Animation:
             )
             if result.stdout:
                 print(result.stdout)
+        except FileNotFoundError:
+            print("ffmpeg not found, skipping video creation.")
         except subprocess.CalledProcessError as e:
             print(f"Error during video creation: {e}")
             print(f"Command: {' '.join(cmd)}")
