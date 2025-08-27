@@ -20,3 +20,8 @@ This section provides the API reference for static plotting functions in ``mapfl
    :class: dropdown
 
    .. autofunction:: mapflow.plot_da_quiver
+
+.. admonition:: plot_da_stream
+   :class: dropdown
+
+   .. autofunction:: mapflow.plot_da_stream
