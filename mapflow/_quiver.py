@@ -362,7 +362,7 @@ def animate_quiver(
             import xarray as xr
             from mapflow import animate_quiver
 
-            ds = xr.tutorial.load_dataset("air_temperature_gradient")
+            ds = xr.tutorial.load_dataset("air_temperature_gradient").isel(time=slice(96))
             animate_quiver(u=ds["dTdx"], v=ds["dTdy"], path='animation.mkv', subsample=3)
 
     See Also:
