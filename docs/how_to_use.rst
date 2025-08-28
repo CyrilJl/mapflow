@@ -1,3 +1,5 @@
+:notoc: true
+
 .. _how_to_use:
 
 How to use
