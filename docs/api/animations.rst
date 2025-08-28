@@ -1,3 +1,5 @@
+:notoc: true
+
 .. _api_animations:
 
 Animations
