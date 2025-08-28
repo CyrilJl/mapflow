@@ -37,7 +37,7 @@ Creating a static plot
    ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
    plot_da(da=ds['t2m'].isel(time=0))
 
-.. image:: /_static/plot_da.png
+.. image:: ../_static/plot_da.png
    :alt: Sample output of plot_da function
    :align: center
    :width: 75%

@@ -1,3 +1,5 @@
+:notoc: true
+
 .. _index:
 
 Welcome to mapflow's documentation!
