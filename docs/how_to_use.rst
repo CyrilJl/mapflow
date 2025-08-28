@@ -42,7 +42,7 @@ Creating a static plot
 .. image:: ../_static/plot_da.png
    :alt: Sample output of plot_da function
    :align: center
-   :width: 75%
+   :width: 50%
 
 Quiver plots
 ------------
