@@ -266,9 +266,7 @@ class PlotModel:
             plt.show()
 
 
-def plot_da(
-    da: xr.DataArray, x_name=None, y_name=None, crs=4326, borders=None, diff=False, **kwargs
-):
+def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, borders=None, diff=False, **kwargs):
     """Convenience function for quick plotting of an xarray DataArray using PlotModel.
 
     This is a simplified wrapper around the `PlotModel` class that handles:
@@ -322,9 +320,7 @@ def plot_da(
         da = da.sortby(actual_x_name).sortby(actual_y_name)
     crs_ = process_crs(da, crs)
     if crs_.is_geographic:
-        da[actual_x_name] = xr.where(
-            da[actual_x_name] > 180, da[actual_x_name] - 360, da[actual_x_name]
-        )
+        da[actual_x_name] = xr.where(da[actual_x_name] > 180, da[actual_x_name] - 360, da[actual_x_name])
 
     p = PlotModel(
         x=da[actual_x_name].values,
