@@ -266,7 +266,7 @@ class PlotModel:
             plt.show()
 
 
-def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=4326, borders=None, diff=False, **kwargs):
+def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=None, borders=None, diff=False, **kwargs):
     """Convenience function for quick plotting of an xarray DataArray using PlotModel.
 
     This is a simplified wrapper around the `PlotModel` class that handles:

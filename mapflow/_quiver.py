@@ -25,7 +25,7 @@ def plot_da_quiver(
     v,
     x_name=None,
     y_name=None,
-    crs=4326,
+    crs=None,
     subsample: int = 1,
     show=True,
     arrows_kwgs: dict = None,
