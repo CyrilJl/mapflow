@@ -321,6 +321,7 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=None, borders=None, 
     crs_ = process_crs(da, crs)
     if crs_.is_geographic:
         da[actual_x_name] = xr.where(da[actual_x_name] > 180, da[actual_x_name] - 360, da[actual_x_name])
+        da = da.sortby(actual_x_name)
 
     p = PlotModel(
         x=da[actual_x_name].values,
