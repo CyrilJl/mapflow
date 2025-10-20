@@ -266,7 +266,7 @@ class PlotModel:
             plt.show()
 
 
-def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=None, borders=None, diff=False, **kwargs):
+def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=None, borders=None, diff=False, subsample=None, **kwargs):
     """Convenience function for quick plotting of an xarray DataArray using PlotModel.
 
     This is a simplified wrapper around the `PlotModel` class that handles:
@@ -288,6 +288,8 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=None, borders=None, 
         borders (gpd.GeoDataFrame | gpd.GeoSeries | None): Custom borders to use.
             If None, defaults to world borders from a packaged GeoPackage.
         diff (bool, optional): Whether to use a divergent colormap. Defaults to False.
+        subsample (int, optional): If provided, subsamples the data by this factor for plotting.
+            Useful for large datasets to speed up plotting. Defaults to None.
         **kwargs: Additional arguments passed to `PlotModel.__call__`, including:
             - `figsize` (tuple, optional): Figure size (width, height) in inches.
             - `qmin`/`qmax` (float, optional): Quantile ranges for color scaling (0-100).
@@ -315,6 +317,9 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=None, borders=None, 
     """
     actual_x_name = guess_coord_name(da.coords, X_NAME_CANDIDATES, x_name, "x")
     actual_y_name = guess_coord_name(da.coords, Y_NAME_CANDIDATES, y_name, "y")
+
+    if subsample is not None:
+        da = da.isel({actual_x_name: slice(None, None, subsample), actual_y_name: slice(None, None, subsample)})
 
     if da[actual_x_name].ndim == 1 and da[actual_y_name].ndim == 1:
         da = da.sortby(actual_x_name).sortby(actual_y_name)
