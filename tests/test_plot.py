@@ -45,3 +45,8 @@ def test_plot_da_with_linestring_borders(air_data):
     gdf = gpd.GeoDataFrame(geometry=[polygon, line], crs="EPSG:4326")
     plot_da(da=air_data.isel(time=0), borders=gdf, show=False)
     plt.close()
+
+
+def test_plot_da_subsample(air_data):
+    plot_da(da=air_data.isel(time=0), subsample=2, show=False)
+    plt.close()
