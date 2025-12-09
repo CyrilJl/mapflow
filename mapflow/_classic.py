@@ -563,7 +563,7 @@ class Animation:
             str(Path(tempdir) / "frame_%08d.png"),
         ]
         if suffix in (".mkv", ".mov", ".mp4"):
-            cmd.extend(["-vcodec", "libx265", "-crf", "22"])
+            cmd.extend(["-vcodec", "libx264", "-crf", "22"])
         elif suffix == ".avi":
             cmd.extend(["-vcodec", "mpeg4", "-q:v", "5"])
         cmd.append(str(path))
