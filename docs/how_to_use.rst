@@ -20,11 +20,9 @@ The main function of ``mapflow`` is ``animate``, which creates a video from an `
    ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
    animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4')
 
-.. raw:: html
-
-    <video width="640" height="480" controls>
-      <source src="../_static/animation.mp4" type="video/mp4">
-    </video>
+.. video:: ../_static/animation.mp4
+   :width: 640
+   :height: 480
 
 Creating a static plot
 ----------------------
