@@ -551,7 +551,6 @@ class Animation:
         suffix = path.suffix.lower()
         if suffix not in (".avi", ".mkv", ".mov", ".mp4"):
             raise ValueError("Output format must be either .avi, .mkv, .mov or .mp4")
-
         cmd = [
             "ffmpeg",
             "-y",
@@ -563,7 +562,22 @@ class Animation:
             str(Path(tempdir) / "frame_%08d.png"),
         ]
         if suffix in (".mkv", ".mov", ".mp4"):
-            cmd.extend(["-vcodec", "libx264", "-crf", "22"])
+            cmd.extend(
+                [
+                    "-vcodec",
+                    "libx264",
+                    "-pix_fmt",
+                    "yuv420p",  # Compatibilité navigateurs
+                    "-profile:v",
+                    "main",  # Profil compatible
+                    "-crf",
+                    "22",
+                    "-vf",
+                    "scale='if(mod(iw,2),iw+1,iw)':'if(mod(ih,2),ih+1,ih)'",  # Force dimensions paires
+                ]
+            )
+            if suffix == ".mp4":
+                cmd.extend(["-movflags", "+faststart"])  # Optimisation streaming web
         elif suffix == ".avi":
             cmd.extend(["-vcodec", "mpeg4", "-q:v", "5"])
         cmd.append(str(path))
