@@ -5,3 +5,4 @@ xarray
 matplotlib
 geopandas
 tqdm
+sphinxcontrib-video

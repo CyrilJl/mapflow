@@ -23,6 +23,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinxawesome_theme",
     "sphinx_togglebutton",
+    "sphinxcontrib.video",
 ]
 html_title = project
 templates_path = ["_templates"]
