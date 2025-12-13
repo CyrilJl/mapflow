@@ -416,6 +416,7 @@ class Animation:
         dpi=180,
         n_jobs=None,
         timeout="auto",
+        crf=20,
     ):
         """Generates an animation from a sequence of 2D data arrays.
 
@@ -472,6 +473,7 @@ class Animation:
             n_jobs=n_jobs,
             timeout=timeout,
             diff=diff,
+            crf=crf,
         )
 
     def _animate(
@@ -490,6 +492,7 @@ class Animation:
         n_jobs=None,
         timeout="auto",
         diff=False,
+        crf=20,
     ):
         titles = self._process_title(title, upsample_ratio)
         data = self.upsample(data, ratio=upsample_ratio)
@@ -526,7 +529,7 @@ class Animation:
                 )
 
             timeout = max(20, 0.1 * data_len) if timeout == "auto" else timeout
-            self._create_video(tempdir, path, fps, timeout=timeout)
+            self._create_video(tempdir, path, fps, timeout=timeout, crf=crf)
 
     def _generate_frame(self, args):
         """Generates a frame and saves it as a PNG."""
@@ -546,7 +549,7 @@ class Animation:
         plt.close()
 
     @staticmethod
-    def _build_ffmpeg_cmd(tempdir, path, fps):
+    def _build_ffmpeg_cmd(tempdir, path, fps, crf=20):
         path = Path(path)
         suffix = path.suffix.lower()
         if suffix not in (".avi", ".mkv", ".mov", ".mp4"):
@@ -571,7 +574,7 @@ class Animation:
                     "-profile:v",
                     "main",  # Profil compatible
                     "-crf",
-                    "22",
+                    str(crf),
                     "-vf",
                     "scale='if(mod(iw,2),iw+1,iw)':'if(mod(ih,2),ih+1,ih)'",  # Force dimensions paires
                 ]
@@ -584,8 +587,8 @@ class Animation:
         return cmd
 
     @staticmethod
-    def _create_video(tempdir, path, fps, timeout):
-        cmd = Animation._build_ffmpeg_cmd(tempdir, path, fps)
+    def _create_video(tempdir, path, fps, timeout, crf=20):
+        cmd = Animation._build_ffmpeg_cmd(tempdir, path, fps, crf=crf)
         try:
             result = subprocess.run(
                 cmd,
@@ -658,6 +661,7 @@ def animate(
             - `n_jobs` (int, optional): Number of parallel jobs for frame generation.
             - `dpi` (int, optional): Dots per inch for the saved frames.
             - `timeout` (str | int, optional): Timeout for video creation.
+            - `crf` (int, optional): Constant Rate Factor for video encoding. Lower values mean better quality.
 
 
     .. code-block:: python
