@@ -1,9 +1,9 @@
+import subprocess
 from copy import copy
 from multiprocessing import Pool
 from os import cpu_count
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import subprocess
 
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -12,7 +12,7 @@ import xarray as xr
 from matplotlib.collections import LineCollection
 from matplotlib.colors import LogNorm, Normalize
 from pyproj import CRS
-from shapely.geometry import LineString, MultiLineString, Polygon, MultiPolygon
+from shapely.geometry import LineString, MultiLineString, MultiPolygon, Polygon
 from tqdm.auto import tqdm
 
 from ._misc import (
@@ -182,10 +182,10 @@ class PlotModel:
         vmax=None,
         log=False,
         diff=False,
-        cmap="jet",
+        cmap="turbo",
         norm=None,
         shading="nearest",
-        shrink=0.4,
+        shrink=0.5,
         label=None,
         title=None,
         show=True,
@@ -262,6 +262,7 @@ class PlotModel:
         plt.title(title)
         plt.gca().axis("off")
         plt.tight_layout()
+        plt.gcf().set_facecolor("#f5f5f5")
         if show:
             plt.show()
 
