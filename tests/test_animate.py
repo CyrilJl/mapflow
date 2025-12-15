@@ -1,4 +1,5 @@
 import os
+import subprocess
 from tempfile import TemporaryDirectory
 
 import geopandas as gpd
@@ -74,6 +75,103 @@ def test_animate_2d(air_data_2d_coordinates):
             verbose=True,
         )
         assert os.path.exists(path)
+
+
+def get_video_duration(path):
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        path,
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    return float(result.stdout)
+
+
+def test_animate_duration_fps(air_data):
+    duration = 1
+    with TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/test_animation_duration_fps.mp4"
+        animate(
+            da=air_data,
+            path=path,
+            x_name="lon",
+            y_name="lat",
+            duration=duration,
+            fps=30,
+            verbose=True,
+        )
+        assert os.path.exists(path)
+        assert abs(get_video_duration(path) - duration) < 0.1
+
+
+def test_animate_duration_upsample_ratio(air_data):
+    duration = 1
+    with TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/test_animation_duration_upsample.mp4"
+        animate(
+            da=air_data,
+            path=path,
+            x_name="lon",
+            y_name="lat",
+            duration=duration,
+            upsample_ratio=5,
+            verbose=True,
+        )
+        assert os.path.exists(path)
+        assert abs(get_video_duration(path) - duration) < 0.1
+
+
+def test_animate_duration_only(air_data):
+    duration = 1
+    with TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/test_animation_duration_only.mp4"
+        animate(
+            da=air_data,
+            path=path,
+            x_name="lon",
+            y_name="lat",
+            duration=duration,
+            verbose=True,
+        )
+        assert os.path.exists(path)
+        assert abs(get_video_duration(path) - duration) < 0.1
+
+
+def test_animate_single_frame_duration(air_data):
+    duration = 2
+    with TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/test_animation_single_frame_duration.mp4"
+        animate(
+            da=air_data.isel(time=slice(0, 1)),
+            path=path,
+            x_name="lon",
+            y_name="lat",
+            duration=duration,
+            fps=10,  # This fps will be overridden
+            verbose=True,
+        )
+        assert os.path.exists(path)
+        assert abs(get_video_duration(path) - duration) < 0.1
+
+
+def test_animate_conflicting_args(air_data):
+    with TemporaryDirectory() as tmpdir:
+        with pytest.raises(ValueError):
+            animate(
+                da=air_data,
+                path=f"{tmpdir}/test.mp4",
+                x_name="lon",
+                y_name="lat",
+                fps=24,
+                upsample_ratio=2,
+                duration=5,
+                verbose=True,
+            )
 
 
 def test_animate_quiver(air_temperature_gradient_data):
