@@ -338,6 +338,7 @@ def plot_da(da: xr.DataArray, x_name=None, y_name=None, crs=None, borders=None, 
     data = p._process_data(da.values)
     p(data, diff=diff, **kwargs)
 
+
 class Animation:
     """A class for creating animations from 3D data with geographic borders.
 
@@ -412,11 +413,11 @@ class Animation:
             elif upsample_ratio is not None:
                 total_frames = (n_frames_raw - 1) * upsample_ratio + 1 if n_frames_raw > 1 else 1
                 fps = total_frames / duration
-            else: # duration only
+            else:  # duration only
                 upsample_ratio = 2
                 total_frames = (n_frames_raw - 1) * upsample_ratio + 1 if n_frames_raw > 1 else 1
                 fps = total_frames / duration
-        else: # duration is None
+        else:  # duration is None
             fps = fps or 24
             upsample_ratio = upsample_ratio or 2
         return fps, upsample_ratio
