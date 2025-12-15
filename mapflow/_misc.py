@@ -111,9 +111,11 @@ def check_da(da, time_name, x_name, y_name, crs):
 
     da = da.sortby(time_name).squeeze()
 
-    if da.ndim != 3:
+    if da.ndim == 2:
+        da = da.expand_dims(time_name)
+    elif da.ndim != 3:
         raise ValueError(
-            f"DataArray must have 3 dimensions ({time_name}, {y_name}, {x_name}), got {da.ndim} dimensions."
+            f"DataArray must have 2 or 3 dimensions, but got {da.ndim} dimensions."
         )
 
     # Ensure time is the first dimension
