@@ -319,9 +319,9 @@ def animate_quiver(
     """Creates a quiver animation from two xarray DataArrays.
 
     Args:
-        u (xr.DataArray): Input DataArray for the U-component with at least time, x, and y dimensions.
-        v (xr.DataArray): Input DataArray for the V-component with at least time, x, and y dimensions.
-        path (str): Output path for the video file. Supported formats are avi, mov and mp4.
+        u (xr.DataArray): Input DataArray for the U-component with time as the animation dimension and x/y spatial dimensions.
+        v (xr.DataArray): Input DataArray for the V-component with time as the animation dimension and x/y spatial dimensions.
+        path (str): Output path for the video file. Supported formats are avi, mkv, mov, and mp4.
         time_name (str, optional): Name of the time coordinate in `da`. If None,
             it's guessed from `["time", "t", "times"]`. Defaults to None.
         x_name (str, optional): Name of the x-coordinate (e.g., longitude) in `da`.

@@ -22,7 +22,6 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinxawesome_theme",
-    "sphinx_togglebutton",
     "sphinxcontrib.video",
 ]
 html_title = project

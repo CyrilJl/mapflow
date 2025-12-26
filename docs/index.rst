@@ -5,7 +5,7 @@
 Welcome to mapflow's documentation!
 ===================================
 
-``mapflow`` transforms 3D ``xr.DataArray`` into video files in one line of code.
+``mapflow`` transforms 3D ``xr.DataArray`` (time, y, x) into video files in one line of code.
 
 Installation
 ------------

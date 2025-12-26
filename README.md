@@ -9,7 +9,7 @@
 [![Documentation Status](https://readthedocs.org/projects/mapflow/badge/?version=latest)](https://mapflow.readthedocs.io/en/latest/?badge=latest)
 </div>
 
-``mapflow`` transforms 3D ``xr.DataArray`` in video files in one code line.
+``mapflow`` transforms 3D ``xr.DataArray`` (time, y, x) into video files in one line of code.
 
 ## Documentation
 

@@ -10,7 +10,7 @@ This page provides examples of how to use ``mapflow`` for creating animations an
 Animating a DataArray
 ---------------------
 
-The main function of ``mapflow`` is ``animate``, which creates a video from an ``xarray.DataArray``.
+The main function of ``mapflow`` is ``animate``, which creates a video from a 3D ``xarray.DataArray`` with time as the animation dimension.
 
 .. code-block:: python
 
@@ -55,7 +55,7 @@ You can also create quiver plots to visualize vector fields. The `plot_da_quiver
     ds = xr.tutorial.load_dataset("air_temperature_gradient").isel(time=0)
     plot_da_quiver(u=ds["dTdx"], v=ds["dTdy"], subsample=4)
 
-Similarly, you can create quiver animations using the `animate_quiver` function.
+Similarly, you can create quiver animations using the `animate_quiver` function. Provide 3D DataArrays with time as the animation dimension.
 
 .. code-block:: python
 
@@ -111,6 +111,6 @@ Key Features
 
 * **One-line Alternative to Cartopy**: The ``plot_da`` function provides a simple, one-line alternative to creating maps with ``cartopy``, making it quick and easy to visualize your geospatial data.
 
-* **Flexible Output**: Animations can be saved in various formats, including `.mp4`, `.mov`, and `.avi`.
+* **Flexible Output**: Animations can be saved in various formats, including `.mp4`, `.mkv`, `.mov`, and `.avi`.
 
 * **Parallel Processing**: Frame generation for animations is done in parallel to speed up the process. You can control the number of parallel jobs with the `n_jobs` argument.

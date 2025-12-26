@@ -213,13 +213,13 @@ class PlotModel:
                 Defaults to False.
             diff (bool, optional): Whether to use a divergent colormap.
                 Defaults to False.
-            cmap (str, optional): Colormap to use. Defaults to "jet".
+            cmap (str, optional): Colormap to use. Defaults to "turbo".
             norm (matplotlib.colors.Normalize, optional): Custom normalization object.
                 Overrides vmin, vmax, qmin, qmax, log. Defaults to None.
             shading (str, optional): Shading method for pcolormesh.
                 Defaults to "nearest".
             shrink (float, optional): Factor by which to shrink the colorbar.
-                Defaults to 0.4.
+                Defaults to 0.5.
             label (str, optional): Label for the colorbar. Defaults to None.
             title (str, optional): Title for the plot. Defaults to None.
             show (bool, optional): Whether to display the plot using `plt.show()`.
@@ -455,7 +455,7 @@ class Animation:
             data (np.ndarray): A 3D numpy array where the first dimension is time
                 (or frame sequence) and the next two are spatial (y, x).
             path (str | Path): The output path for the generated video file.
-                Supported formats are avi, mov and mp4.
+                Supported formats are avi, mkv, mov, and mp4.
             figsize (tuple[float, float], optional): Figure size (width, height)
                 in inches. Defaults to None (matplotlib's default).
             title (str | list[str], optional): Title for the plot. If a string,
@@ -659,16 +659,16 @@ def animate(
     duration: int = None,
     **kwargs,
 ):
-    """Creates an animation from an xarray DataArray.
+    """Creates an animation from a 3D xarray DataArray (time, y, x).
 
     This function prepares data from an xarray DataArray (e.g., handling
     geographic coordinates, extracting time information for titles) and
     then uses the `Animation` class to generate and save the animation.
 
     Args:
-        da (xr.DataArray): Input DataArray with at least time, x, and y dimensions.
-        path (str): Output path for the video file. Supported formats are avi, mov
-            and mp4.
+        da (xr.DataArray): Input DataArray with time as the animation dimension and x/y spatial dimensions.
+        path (str): Output path for the video file. Supported formats are avi, mkv,
+            mov, and mp4.
         time_name (str, optional): Name of the time coordinate in `da`. If None,
             it's guessed from `["time", "t", "times"]`. Defaults to None.
         x_name (str, optional): Name of the x-coordinate (e.g., longitude) in `da`.
