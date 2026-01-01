@@ -85,6 +85,7 @@ def check_da(da, time_name, x_name, y_name, crs):
     - Wraps longitudes to the -180 to 180 range for geographic CRS.
     - Sorts the DataArray by its coordinates.
     - Ensures the DataArray is 3-dimensional and transposes it to (`time`, `y`, `x`).
+      2D inputs are not supported.
 
     Args:
         da (xr.DataArray): The DataArray to check.
@@ -112,9 +113,9 @@ def check_da(da, time_name, x_name, y_name, crs):
     da = da.sortby(time_name).squeeze()
 
     if da.ndim == 2:
-        da = da.expand_dims(time_name)
+        raise ValueError("DataArray must have 3 dimensions (time, y, x); 2D inputs are not supported.")
     elif da.ndim != 3:
-        raise ValueError(f"DataArray must have 2 or 3 dimensions, but got {da.ndim} dimensions.")
+        raise ValueError(f"DataArray must have 3 dimensions, but got {da.ndim} dimensions.")
 
     # Ensure time is the first dimension
     if da[x_name].ndim == 1 and da[y_name].ndim == 1:

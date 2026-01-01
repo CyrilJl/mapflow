@@ -483,6 +483,8 @@ class Animation:
                 Defaults to 2/3 of CPU cores.
             timeout (int | str, optional): Timeout for the ffmpeg command in seconds.
                 Defaults to "auto", which sets the timeout to `max(20, 0.1 * data_len)`.
+            crf (int, optional): Constant Rate Factor for video encoding. Lower values
+                mean better quality. Defaults to 20.
         """
         if diff:
             cmap = "bwr"
@@ -602,7 +604,7 @@ class Animation:
                     "-vcodec",
                     "libx264",
                     "-pix_fmt",
-                    "yuv420p",  # Compatibilité navigateurs
+                    "yuv420p",  # Browser compatibility
                     "-profile:v",
                     "main",  # Profil compatible
                     "-crf",
@@ -667,6 +669,7 @@ def animate(
 
     Args:
         da (xr.DataArray): Input DataArray with time as the animation dimension and x/y spatial dimensions.
+            2D inputs are not supported.
         path (str): Output path for the video file. Supported formats are avi, mkv,
             mov, and mp4.
         time_name (str, optional): Name of the time coordinate in `da`. If None,
@@ -685,6 +688,7 @@ def animate(
         fps (int, optional): Frames per second for the output video. Defaults to 24.
         upsample_ratio (int, optional): Factor to upsample data temporally. Defaults to 2.
         duration (int, optional): Duration of the video in seconds.
+            Only two of 'fps', 'upsample_ratio', and 'duration' can be provided.
         **kwargs: Additional keyword arguments passed to the `Animation` class, including:
             - `cmap` (str, optional): Colormap for the plot.
             - `norm` (matplotlib.colors.Normalize, optional): Custom normalization object.
@@ -731,7 +735,7 @@ def animate(
     time_format = kwargs.get("time_format", "%Y-%m-%dT%H")
     time = da[actual_time_name].dt.strftime(time_format).values
     field = da.name or da.attrs.get("long_name")
-    titles = [f"{field} · {t}" for t in time]
+    titles = [f"{field} - {t}" for t in time]
     animation(
         data=da.values,
         path=output_path,

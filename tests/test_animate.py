@@ -142,17 +142,17 @@ def test_animate_duration_only(air_data):
         assert abs(get_video_duration(path) - duration) < 0.1
 
 
-def test_animate_single_frame_duration(air_data):
+def test_animate_duration_with_fps(air_data):
     duration = 2
     with TemporaryDirectory() as tmpdir:
-        path = f"{tmpdir}/test_animation_single_frame_duration.mp4"
+        path = f"{tmpdir}/test_animation_duration_with_fps.mp4"
         animate(
-            da=air_data.isel(time=slice(0, 1)),
+            da=air_data.isel(time=slice(0, 2)),
             path=path,
             x_name="lon",
             y_name="lat",
             duration=duration,
-            fps=10,  # This fps will be overridden
+            fps=10,
             verbose=True,
         )
         assert os.path.exists(path)

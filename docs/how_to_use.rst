@@ -20,6 +20,11 @@ The main function of ``mapflow`` is ``animate``, which creates a video from a 3D
    ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
    animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4')
 
+Notes:
+
+* Only two of ``fps``, ``upsample_ratio``, and ``duration`` can be provided at the same time.
+* Use ``crf`` to control video quality (lower values mean better quality).
+
 .. video:: ../_static/animation.mp4
    :width: 640
    :height: 480

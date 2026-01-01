@@ -16,8 +16,8 @@ This section provides the API reference for animation functions in ``mapflow``.
 .. admonition:: QuiverAnimation
    :class: dropdown
 
-    .. autoclass:: mapflow.QuiverAnimation
-       :members: quiver
+   .. autoclass:: mapflow.QuiverAnimation
+      :members: quiver
 
 .. admonition:: animate
    :class: dropdown

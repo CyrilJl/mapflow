@@ -320,9 +320,11 @@ def animate_quiver(
 
     Args:
         u (xr.DataArray): Input DataArray for the U-component with time as the animation dimension and x/y spatial dimensions.
+            Must be 3D (time, y, x).
         v (xr.DataArray): Input DataArray for the V-component with time as the animation dimension and x/y spatial dimensions.
+            Must be 3D (time, y, x).
         path (str): Output path for the video file. Supported formats are avi, mkv, mov, and mp4.
-        time_name (str, optional): Name of the time coordinate in `da`. If None,
+        time_name (str, optional): Name of the time coordinate in `u` and `v`. If None,
             it's guessed from `["time", "t", "times"]`. Defaults to None.
         x_name (str, optional): Name of the x-coordinate (e.g., longitude) in `da`.
             If None, it's guessed from `["x", "lon", "longitude"]`. Defaults to None.
@@ -390,7 +392,7 @@ def animate_quiver(
     if field_name is None:
         titles = [f"{t}" for t in time]
     else:
-        titles = [f"{field_name} · {t}" for t in time]
+        titles = [f"{field_name} - {t}" for t in time]
 
     quiver_kwargs = kwargs.copy()
     quiver_kwargs["x_name"] = actual_x_name
