@@ -5,7 +5,7 @@ from tempfile import TemporaryDirectory
 import geopandas as gpd
 import numpy as np
 import pytest
-import rioxarray as rio
+import rioxarray as rio  # noqa: F401
 import xarray as xr
 from shapely.geometry import box
 
