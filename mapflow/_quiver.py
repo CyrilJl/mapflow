@@ -142,6 +142,7 @@ class QuiverAnimation(Animation):
         log=False,
         label=None,
         dpi=180,
+        pad_inches: float = 0.2,
         video_width: int | None = None,
         n_jobs=None,
         timeout="auto",
@@ -167,6 +168,8 @@ class QuiverAnimation(Animation):
             log (bool, optional): Whether to use a logarithmic color scale. Defaults to False.
             label (str, optional): Label for the colorbar.
             dpi (int, optional): Dots per inch for saved frames. Defaults to 180.
+            pad_inches (float, optional): Padding in inches around saved frames.
+                Defaults to 0.2.
             video_width (int, optional): Target output video width in pixels.
             n_jobs (int, optional): Number of parallel jobs for frame generation.
             timeout (int | str, optional): Timeout for the ffmpeg command. Defaults to "auto".
@@ -202,6 +205,7 @@ class QuiverAnimation(Animation):
             norm=norm,
             label=label,
             dpi=dpi,
+            pad_inches=pad_inches,
             n_jobs=n_jobs,
             timeout=timeout,
             subsample=subsample,
@@ -223,6 +227,7 @@ class QuiverAnimation(Animation):
         norm=None,
         label=None,
         dpi=180,
+        pad_inches: float = 0.2,
         n_jobs=None,
         timeout="auto",
         video_width: int | None = None,
@@ -251,6 +256,7 @@ class QuiverAnimation(Animation):
                     norm,
                     label,
                     dpi,
+                    pad_inches,
                     fixed_frame,
                     kwargs,
                 )
@@ -273,7 +279,7 @@ class QuiverAnimation(Animation):
 
     def _generate_quiver_frame(self, args):
         """Generates a quiver frame and saves it as a PNG."""
-        (u_frame, v_frame), frame_path, figsize, title, cmap, norm, label, dpi, fixed_frame, kwargs = args
+        (u_frame, v_frame), frame_path, figsize, title, cmap, norm, label, dpi, pad_inches, fixed_frame, kwargs = args
         x_name = kwargs.get("x_name")
         y_name = kwargs.get("y_name")
         coords = {y_name: self.plot.y, x_name: self.plot.x}
@@ -311,10 +317,9 @@ class QuiverAnimation(Animation):
         if arrows_kwgs is None:
             arrows_kwgs = {}
         plt.quiver(x, y, u_sub, v_sub, **arrows_kwgs)
-        if fixed_frame:
-            plt.savefig(frame_path, dpi=dpi, bbox_inches=None, pad_inches=0)
-        else:
-            plt.savefig(frame_path, dpi=dpi, bbox_inches="tight", pad_inches=0.05)
+        bbox = "tight"
+        pad = pad_inches
+        plt.savefig(frame_path, dpi=dpi, bbox_inches=bbox, pad_inches=pad)
         plt.clf()
         plt.close()
 
@@ -333,6 +338,7 @@ def animate_quiver(
     subsample: int = 1,
     arrows_kwgs: dict = None,
     video_width: int | None = None,
+    pad_inches: float = 0.2,
     **kwargs,
 ):
     """Creates a quiver animation from two xarray DataArrays.
@@ -363,6 +369,8 @@ def animate_quiver(
         arrows_kwgs (dict, optional): Additional keyword arguments passed to
             `matplotlib.pyplot.quiver`. Defaults to None.
         video_width (int, optional): Target output video width in pixels.
+        pad_inches (float, optional): Padding in inches around saved frames.
+            Defaults to 0.2.
         **kwargs: Additional keyword arguments passed to the `QuiverAnimation` class, including:
             - `cmap` (str, optional): Colormap for the plot.
             - `norm` (matplotlib.colors.Normalize, optional): Custom normalization object.
@@ -427,5 +435,6 @@ def animate_quiver(
         subsample=subsample,
         arrows_kwgs=arrows_kwgs,
         video_width=video_width,
+        pad_inches=pad_inches,
         **quiver_kwargs,
     )

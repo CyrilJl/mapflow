@@ -42,7 +42,7 @@ import xarray as xr
 from mapflow import animate
 
 ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
-animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4', video_width=1280)
+animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4', video_width=1280, pad_inches=0.2)
 ```
 
 https://github.com/user-attachments/assets/3c84b380-62b2-4156-937f-5682a1c59457

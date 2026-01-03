@@ -461,6 +461,7 @@ class Animation:
         diff=False,
         label=None,
         dpi=180,
+        pad_inches: float = 0.2,
         video_width: int | None = None,
         n_jobs=None,
         timeout="auto",
@@ -500,6 +501,8 @@ class Animation:
             diff (bool, optional): Whether to use a divergent colormap. Defaults to False.
             label (str, optional): Label for the colorbar. Defaults to None.
             dpi (int, optional): Dots per inch for the saved frames. Defaults to 180.
+            pad_inches (float, optional): Padding in inches around the saved frames.
+                Defaults to 0.2.
             video_width (int, optional): Target output video width in pixels.
             n_jobs (int, optional): Number of parallel jobs for frame generation.
                 Defaults to 2/3 of CPU cores.
@@ -534,6 +537,7 @@ class Animation:
             norm=norm,
             label=label,
             dpi=dpi,
+            pad_inches=pad_inches,
             n_jobs=n_jobs,
             timeout=timeout,
             diff=diff,
@@ -555,6 +559,7 @@ class Animation:
         norm=None,
         label=None,
         dpi=180,
+        pad_inches: float = 0.2,
         n_jobs=None,
         timeout="auto",
         diff=False,
@@ -580,6 +585,7 @@ class Animation:
                     norm,
                     label,
                     dpi,
+                    pad_inches,
                     fixed_frame,
                     {"diff": diff},
                 )
@@ -602,7 +608,7 @@ class Animation:
 
     def _generate_frame(self, args):
         """Generates a frame and saves it as a PNG."""
-        data_frame, frame_path, figsize, title, cmap, norm, label, dpi, fixed_frame, kwargs = args
+        data_frame, frame_path, figsize, title, cmap, norm, label, dpi, pad_inches, fixed_frame, kwargs = args
         self.plot(
             data=data_frame,
             figsize=figsize,
@@ -613,10 +619,9 @@ class Animation:
             label=label,
             **kwargs,
         )
-        if fixed_frame:
-            plt.savefig(frame_path, dpi=dpi, bbox_inches=None, pad_inches=0)
-        else:
-            plt.savefig(frame_path, dpi=dpi, bbox_inches="tight", pad_inches=0.05)
+        bbox = "tight"
+        pad = pad_inches
+        plt.savefig(frame_path, dpi=dpi, bbox_inches=bbox, pad_inches=pad)
         plt.clf()
         plt.close()
 
@@ -711,6 +716,7 @@ def animate(
     upsample_ratio: int = None,
     duration: int = None,
     video_width: int | None = None,
+    pad_inches: float = 0.2,
     **kwargs,
 ):
     """Creates an animation from a 3D xarray DataArray (time, y, x).
@@ -742,6 +748,8 @@ def animate(
         duration (int, optional): Duration of the video in seconds.
             Only two of 'fps', 'upsample_ratio', and 'duration' can be provided.
         video_width (int, optional): Target output video width in pixels.
+        pad_inches (float, optional): Padding in inches around saved frames.
+            Defaults to 0.2.
         **kwargs: Additional keyword arguments passed to the `Animation` class, including:
             - `cmap` (str, optional): Colormap for the plot.
             - `norm` (matplotlib.colors.Normalize, optional): Custom normalization object.
@@ -799,5 +807,6 @@ def animate(
         upsample_ratio=upsample_ratio,
         duration=duration,
         video_width=video_width,
+        pad_inches=pad_inches,
         **kwargs,
     )

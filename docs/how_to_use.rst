@@ -25,6 +25,7 @@ Notes:
 * Only two of ``fps``, ``upsample_ratio``, and ``duration`` can be provided at the same time.
 * Use ``crf`` to control video quality (lower values mean better quality).
 * Use ``video_width`` to control the output video width in pixels.
+* Use ``pad_inches`` to set the padding (inches) around saved frames. Defaults to 0.2.
 
 .. video:: ../_static/animation.mp4
    :width: 640
