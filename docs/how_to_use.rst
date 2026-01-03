@@ -24,6 +24,7 @@ Notes:
 
 * Only two of ``fps``, ``upsample_ratio``, and ``duration`` can be provided at the same time.
 * Use ``crf`` to control video quality (lower values mean better quality).
+* Use ``video_width`` to control the output video width in pixels.
 
 .. video:: ../_static/animation.mp4
    :width: 640

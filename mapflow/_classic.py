@@ -397,6 +397,26 @@ class Animation:
         else:
             raise ValueError("Title must be a string or a list of strings.")
 
+    @staticmethod
+    def _resolve_figsize(figsize, dpi, video_width, x, y, aspect):
+        if video_width is None:
+            return figsize, False
+        if not isinstance(video_width, (int, np.integer)):
+            raise TypeError("video_width must be an integer pixel width.")
+        if video_width <= 0:
+            raise ValueError("video_width must be a positive integer.")
+
+        width_in = video_width / dpi
+        if figsize is None:
+            x_span = np.nanmax(x) - np.nanmin(x)
+            y_span = np.nanmax(y) - np.nanmin(y)
+            if x_span > 0 and y_span > 0:
+                height_in = width_in * (y_span / x_span) * aspect
+            else:
+                height_in = width_in
+            figsize = (width_in, height_in)
+        return figsize, True
+
     def _calculate_animation_parameters(self, n_frames_raw, fps, upsample_ratio, duration):
         if sum(p is not None for p in [fps, upsample_ratio, duration]) > 2:
             raise ValueError("Only two of 'fps', 'upsample_ratio', and 'duration' can be provided.")
@@ -441,6 +461,7 @@ class Animation:
         diff=False,
         label=None,
         dpi=180,
+        video_width: int | None = None,
         n_jobs=None,
         timeout="auto",
         crf=20,
@@ -479,6 +500,7 @@ class Animation:
             diff (bool, optional): Whether to use a divergent colormap. Defaults to False.
             label (str, optional): Label for the colorbar. Defaults to None.
             dpi (int, optional): Dots per inch for the saved frames. Defaults to 180.
+            video_width (int, optional): Target output video width in pixels.
             n_jobs (int, optional): Number of parallel jobs for frame generation.
                 Defaults to 2/3 of CPU cores.
             timeout (int | str, optional): Timeout for the ffmpeg command in seconds.
@@ -490,6 +512,14 @@ class Animation:
             cmap = "bwr"
 
         fps, upsample_ratio = self._calculate_animation_parameters(len(data), fps, upsample_ratio, duration)
+        figsize, fixed_frame = self._resolve_figsize(
+            figsize,
+            dpi,
+            video_width,
+            self.plot.x,
+            self.plot.y,
+            self.plot.aspect,
+        )
 
         norm = self.plot._norm(data, vmin, vmax, qmin, qmax, norm, log, diff)
         self._animate(
@@ -508,6 +538,8 @@ class Animation:
             timeout=timeout,
             diff=diff,
             crf=crf,
+            video_width=video_width,
+            fixed_frame=fixed_frame,
         )
 
     def _animate(
@@ -527,6 +559,8 @@ class Animation:
         timeout="auto",
         diff=False,
         crf=20,
+        video_width: int | None = None,
+        fixed_frame: bool = False,
     ):
         titles = self._process_title(title, upsample_ratio)
         data = self.upsample(data, ratio=upsample_ratio)
@@ -546,6 +580,7 @@ class Animation:
                     norm,
                     label,
                     dpi,
+                    fixed_frame,
                     {"diff": diff},
                 )
                 args.append(arg_tuple)
@@ -563,11 +598,11 @@ class Animation:
                 )
 
             timeout = max(20, 0.1 * data_len) if timeout == "auto" else timeout
-            self._create_video(tempdir, path, fps, timeout=timeout, crf=crf)
+            self._create_video(tempdir, path, fps, timeout=timeout, crf=crf, video_width=video_width)
 
     def _generate_frame(self, args):
         """Generates a frame and saves it as a PNG."""
-        data_frame, frame_path, figsize, title, cmap, norm, label, dpi, kwargs = args
+        data_frame, frame_path, figsize, title, cmap, norm, label, dpi, fixed_frame, kwargs = args
         self.plot(
             data=data_frame,
             figsize=figsize,
@@ -578,16 +613,30 @@ class Animation:
             label=label,
             **kwargs,
         )
-        plt.savefig(frame_path, dpi=dpi, bbox_inches="tight", pad_inches=0.05)
+        if fixed_frame:
+            plt.savefig(frame_path, dpi=dpi, bbox_inches=None, pad_inches=0)
+        else:
+            plt.savefig(frame_path, dpi=dpi, bbox_inches="tight", pad_inches=0.05)
         plt.clf()
         plt.close()
 
     @staticmethod
-    def _build_ffmpeg_cmd(tempdir, path, fps, crf=20):
+    def _build_ffmpeg_cmd(tempdir, path, fps, crf=20, video_width: int | None = None):
         path = Path(path)
         suffix = path.suffix.lower()
         if suffix not in (".avi", ".mkv", ".mov", ".mp4"):
             raise ValueError("Output format must be either .avi, .mkv, .mov or .mp4")
+        if video_width is not None:
+            if not isinstance(video_width, (int, np.integer)):
+                raise TypeError("video_width must be an integer pixel width.")
+            if video_width <= 0:
+                raise ValueError("video_width must be a positive integer.")
+            target_width = int(video_width)
+            if target_width % 2:
+                target_width += 1
+            scale_filter = f"scale={target_width}:-2"
+        else:
+            scale_filter = "scale='if(mod(iw,2),iw+1,iw)':'if(mod(ih,2),ih+1,ih)'"
         cmd = [
             "ffmpeg",
             "-y",
@@ -610,19 +659,21 @@ class Animation:
                     "-crf",
                     str(crf),
                     "-vf",
-                    "scale='if(mod(iw,2),iw+1,iw)':'if(mod(ih,2),ih+1,ih)'",  # Force dimensions paires
+                    scale_filter,  # Force dimensions paires
                 ]
             )
             if suffix == ".mp4":
                 cmd.extend(["-movflags", "+faststart"])  # Optimisation streaming web
         elif suffix == ".avi":
             cmd.extend(["-vcodec", "mpeg4", "-q:v", "5"])
+            if video_width is not None:
+                cmd.extend(["-vf", scale_filter])
         cmd.append(str(path))
         return cmd
 
     @staticmethod
-    def _create_video(tempdir, path, fps, timeout, crf=20):
-        cmd = Animation._build_ffmpeg_cmd(tempdir, path, fps, crf=crf)
+    def _create_video(tempdir, path, fps, timeout, crf=20, video_width: int | None = None):
+        cmd = Animation._build_ffmpeg_cmd(tempdir, path, fps, crf=crf, video_width=video_width)
         try:
             result = subprocess.run(
                 cmd,
@@ -659,6 +710,7 @@ def animate(
     fps: int = None,
     upsample_ratio: int = None,
     duration: int = None,
+    video_width: int | None = None,
     **kwargs,
 ):
     """Creates an animation from a 3D xarray DataArray (time, y, x).
@@ -689,6 +741,7 @@ def animate(
         upsample_ratio (int, optional): Factor to upsample data temporally. Defaults to 2.
         duration (int, optional): Duration of the video in seconds.
             Only two of 'fps', 'upsample_ratio', and 'duration' can be provided.
+        video_width (int, optional): Target output video width in pixels.
         **kwargs: Additional keyword arguments passed to the `Animation` class, including:
             - `cmap` (str, optional): Colormap for the plot.
             - `norm` (matplotlib.colors.Normalize, optional): Custom normalization object.
@@ -745,5 +798,6 @@ def animate(
         fps=fps,
         upsample_ratio=upsample_ratio,
         duration=duration,
+        video_width=video_width,
         **kwargs,
     )

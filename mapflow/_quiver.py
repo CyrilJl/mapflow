@@ -142,6 +142,7 @@ class QuiverAnimation(Animation):
         log=False,
         label=None,
         dpi=180,
+        video_width: int | None = None,
         n_jobs=None,
         timeout="auto",
         **kwargs,
@@ -166,6 +167,7 @@ class QuiverAnimation(Animation):
             log (bool, optional): Whether to use a logarithmic color scale. Defaults to False.
             label (str, optional): Label for the colorbar.
             dpi (int, optional): Dots per inch for saved frames. Defaults to 180.
+            video_width (int, optional): Target output video width in pixels.
             n_jobs (int, optional): Number of parallel jobs for frame generation.
             timeout (int | str, optional): Timeout for the ffmpeg command. Defaults to "auto".
             **kwargs: Additional keyword arguments.
@@ -179,6 +181,14 @@ class QuiverAnimation(Animation):
             qmax=qmax,
             norm=norm,
             log=log,
+        )
+        figsize, fixed_frame = self._resolve_figsize(
+            figsize,
+            dpi,
+            video_width,
+            self.plot.x,
+            self.plot.y,
+            self.plot.aspect,
         )
         self._animate(
             data=(u, v),
@@ -195,6 +205,8 @@ class QuiverAnimation(Animation):
             n_jobs=n_jobs,
             timeout=timeout,
             subsample=subsample,
+            video_width=video_width,
+            fixed_frame=fixed_frame,
             **kwargs,
         )
 
@@ -213,6 +225,8 @@ class QuiverAnimation(Animation):
         dpi=180,
         n_jobs=None,
         timeout="auto",
+        video_width: int | None = None,
+        fixed_frame: bool = False,
         **kwargs,
     ):
         titles = self._process_title(title, upsample_ratio)
@@ -237,6 +251,7 @@ class QuiverAnimation(Animation):
                     norm,
                     label,
                     dpi,
+                    fixed_frame,
                     kwargs,
                 )
                 args.append(arg_tuple)
@@ -254,11 +269,11 @@ class QuiverAnimation(Animation):
                 )
 
             timeout = max(20, 0.1 * data_len) if timeout == "auto" else timeout
-            self._create_video(tempdir, path, fps, timeout=timeout)
+            self._create_video(tempdir, path, fps, timeout=timeout, video_width=video_width)
 
     def _generate_quiver_frame(self, args):
         """Generates a quiver frame and saves it as a PNG."""
-        (u_frame, v_frame), frame_path, figsize, title, cmap, norm, label, dpi, kwargs = args
+        (u_frame, v_frame), frame_path, figsize, title, cmap, norm, label, dpi, fixed_frame, kwargs = args
         x_name = kwargs.get("x_name")
         y_name = kwargs.get("y_name")
         coords = {y_name: self.plot.y, x_name: self.plot.x}
@@ -296,7 +311,10 @@ class QuiverAnimation(Animation):
         if arrows_kwgs is None:
             arrows_kwgs = {}
         plt.quiver(x, y, u_sub, v_sub, **arrows_kwgs)
-        plt.savefig(frame_path, dpi=dpi, bbox_inches="tight", pad_inches=0.05)
+        if fixed_frame:
+            plt.savefig(frame_path, dpi=dpi, bbox_inches=None, pad_inches=0)
+        else:
+            plt.savefig(frame_path, dpi=dpi, bbox_inches="tight", pad_inches=0.05)
         plt.clf()
         plt.close()
 
@@ -314,6 +332,7 @@ def animate_quiver(
     verbose: int = 0,
     subsample: int = 1,
     arrows_kwgs: dict = None,
+    video_width: int | None = None,
     **kwargs,
 ):
     """Creates a quiver animation from two xarray DataArrays.
@@ -343,6 +362,7 @@ def animate_quiver(
             Defaults to 1.
         arrows_kwgs (dict, optional): Additional keyword arguments passed to
             `matplotlib.pyplot.quiver`. Defaults to None.
+        video_width (int, optional): Target output video width in pixels.
         **kwargs: Additional keyword arguments passed to the `QuiverAnimation` class, including:
             - `cmap` (str, optional): Colormap for the plot.
             - `norm` (matplotlib.colors.Normalize, optional): Custom normalization object.
@@ -406,5 +426,6 @@ def animate_quiver(
         label=unit,
         subsample=subsample,
         arrows_kwgs=arrows_kwgs,
+        video_width=video_width,
         **quiver_kwargs,
     )

@@ -92,6 +92,23 @@ def get_video_duration(path):
     return float(result.stdout)
 
 
+def get_video_width(path):
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=width",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        path,
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    return int(result.stdout)
+
+
 def test_animate_duration_fps(air_data):
     duration = 1
     with TemporaryDirectory() as tmpdir:
@@ -214,6 +231,21 @@ def test_animate(air_data):
             verbose=True,
         )
         assert os.path.exists(path)
+
+
+def test_animate_video_width(air_data):
+    with TemporaryDirectory() as tmpdir:
+        path = f"{tmpdir}/test_animation_width.mp4"
+        animate(
+            da=air_data,
+            path=path,
+            x_name="lon",
+            y_name="lat",
+            video_width=321,
+            verbose=True,
+        )
+        assert os.path.exists(path)
+        assert get_video_width(path) == 322
 
 
 def test_animate_log(air_data):
