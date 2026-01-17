@@ -1,10 +1,8 @@
+import geopandas as gpd
 import matplotlib.pyplot as plt
 import pytest
 import xarray as xr
-import tempfile
-from pathlib import Path
-import geopandas as gpd
-from shapely.geometry import Polygon, LineString
+from shapely.geometry import LineString, Polygon
 
 from mapflow import plot_da, plot_da_quiver
 

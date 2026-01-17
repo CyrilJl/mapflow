@@ -1,8 +1,8 @@
 from importlib.metadata import version
 
 from ._classic import Animation, PlotModel, animate, plot_da
-from ._quiver import QuiverAnimation, animate_quiver, plot_da_quiver
 from ._misc import check_ffmpeg
+from ._quiver import QuiverAnimation, animate_quiver, plot_da_quiver
 
 check_ffmpeg()
 
