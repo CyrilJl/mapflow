@@ -259,7 +259,8 @@ class PlotModel:
         plt.ylim(self.y.min() - self.dy / 2, self.y.max() + self.dy / 2)
         plt.gca().add_collection(copy(self.borders))
         plt.gca().set_aspect(self.aspect)
-        plt.title(title)
+        if title is not None:
+            plt.title(str(title))
         plt.gca().axis("off")
         plt.tight_layout()
         plt.gcf().set_facecolor("#f5f5f5")
@@ -446,11 +447,11 @@ class Animation:
         self,
         data,
         path,
-        figsize: tuple = None,
-        title=None,
-        fps: int = None,
-        upsample_ratio: int = None,
-        duration: int = None,
+        figsize: tuple[float, float] | None = None,
+        title: str | list[str] | tuple[str, ...] | None = None,
+        fps: int | None = None,
+        upsample_ratio: int | None = None,
+        duration: int | None = None,
         cmap="jet",
         qmin=0.01,
         qmax=99.9,
@@ -463,8 +464,8 @@ class Animation:
         dpi=180,
         pad_inches: float = 0.2,
         video_width: int | None = None,
-        n_jobs=None,
-        timeout="auto",
+        n_jobs: int | None = None,
+        timeout: int | str = "auto",
         crf=20,
     ):
         """Generates an animation from a sequence of 2D data arrays.
@@ -551,8 +552,8 @@ class Animation:
         data,
         path,
         frame_generator,
-        figsize: tuple = None,
-        title=None,
+        figsize: tuple[float, float] | None = None,
+        title: str | list[str] | tuple[str, ...] | None = None,
         fps: int = 24,
         upsample_ratio: int = 2,
         cmap="jet",
@@ -560,8 +561,8 @@ class Animation:
         label=None,
         dpi=180,
         pad_inches: float = 0.2,
-        n_jobs=None,
-        timeout="auto",
+        n_jobs: int | None = None,
+        timeout: int | str = "auto",
         diff=False,
         crf=20,
         video_width: int | None = None,
@@ -591,7 +592,9 @@ class Animation:
                 )
                 args.append(arg_tuple)
 
-            n_jobs = int(2 / 3 * cpu_count()) if n_jobs is None else n_jobs
+            cpu_total = cpu_count() or 1
+            default_jobs = max(1, int((2 * cpu_total) / 3))
+            n_jobs = default_jobs if n_jobs is None else n_jobs
             with Pool(processes=n_jobs) as pool:
                 list(
                     tqdm(
@@ -603,8 +606,13 @@ class Animation:
                     )
                 )
 
-            timeout = max(20, 0.1 * data_len) if timeout == "auto" else timeout
-            self._create_video(tempdir, path, fps, timeout=timeout, crf=crf, video_width=video_width)
+            if timeout == "auto":
+                timeout_seconds = max(20.0, 0.1 * data_len)
+            elif isinstance(timeout, (int, float)):
+                timeout_seconds = timeout
+            else:
+                raise ValueError("timeout must be 'auto' or a numeric value.")
+            self._create_video(tempdir, path, fps, timeout=timeout_seconds, crf=crf, video_width=video_width)
 
     def _generate_frame(self, args):
         """Generates a frame and saves it as a PNG."""
@@ -705,16 +713,16 @@ def animate(
     da: xr.DataArray,
     path: str,
     *,
-    time_name: str = None,
-    x_name: str = None,
-    y_name: str = None,
+    time_name: str | None = None,
+    x_name: str | None = None,
+    y_name: str | None = None,
     crs=None,
     borders: gpd.GeoDataFrame | gpd.GeoSeries | None = None,
     verbose: int = 0,
     diff=False,
-    fps: int = None,
-    upsample_ratio: int = None,
-    duration: int = None,
+    fps: int | None = None,
+    upsample_ratio: int | None = None,
+    duration: int | None = None,
     video_width: int | None = None,
     pad_inches: float = 0.2,
     **kwargs,
