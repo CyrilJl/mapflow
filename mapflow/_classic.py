@@ -114,6 +114,15 @@ class PlotModel:
         return LogNorm(vmin=vmin, vmax=vmax)
 
     @staticmethod
+    def _validate_quantiles(qmin, qmax):
+        if not (0 <= qmin <= 100):
+            raise ValueError(f"qmin must be between 0 and 100, got {qmin}")
+        if not (0 <= qmax <= 100):
+            raise ValueError(f"qmax must be between 0 and 100, got {qmax}")
+        if qmin >= qmax:
+            raise ValueError(f"qmin must be less than qmax, got {qmin} and {qmax}")
+
+    @staticmethod
     def _norm(data, vmin, vmax, qmin, qmax, norm, log, diff=False):
         """Generates a normalization based on the specified parameters.
 
@@ -133,13 +142,7 @@ class PlotModel:
         Raises:
             ValueError: If qmin/qmax are not between 0-100 or if log=True with no positive values.
         """
-        # Validate quantile ranges
-        if not (0 <= qmin <= 100):
-            raise ValueError(f"qmin must be between 0 and 100, got {qmin}")
-        if not (0 <= qmax <= 100):
-            raise ValueError(f"qmax must be between 0 and 100, got {qmax}")
-        if qmin >= qmax:
-            raise ValueError(f"qmin must be less than qmax, got {qmin} and {qmax}")
+        PlotModel._validate_quantiles(qmin, qmax)
 
         if norm is not None:
             return norm
@@ -155,6 +158,77 @@ class PlotModel:
 
         vmin = np.nanpercentile(data, q=qmin) if vmin is None else vmin
         vmax = np.nanpercentile(data, q=qmax) if vmax is None else vmax
+        return Normalize(vmin=vmin, vmax=vmax)
+
+    @staticmethod
+    def _norm_streaming(frames, vmin, vmax, qmin, qmax, norm, log, diff=False):
+        """Streaming counterpart of :meth:`_norm` operating on an iterable of 2D frames.
+
+        Frames are consumed one at a time, so the full 3D array is never held
+        in memory. Quantile-based bounds are aggregated per frame (minimum of
+        the per-frame lower quantiles, maximum of the per-frame upper
+        quantiles), which yields a range at least as wide as the exact global
+        quantiles. The frames iterable is not consumed at all when explicit
+        bounds (``norm``, or ``vmin`` and ``vmax``) make the data pass
+        unnecessary.
+
+        Args:
+            frames (Iterable[np.ndarray]): Iterable of 2D frames.
+            vmin (float): Minimum value for normalization.
+            vmax (float): Maximum value for normalization.
+            qmin (float): Minimum quantile for normalization (0-100).
+            qmax (float): Maximum quantile for normalization (0-100).
+            norm (matplotlib.colors.Normalize): Custom normalization object.
+            log (bool): Indicates if a logarithmic scale should be used.
+            diff (bool): Indicates if a divergent colormap should be used.
+
+        Returns:
+            matplotlib.colors.Normalize: Normalization object.
+        """
+        PlotModel._validate_quantiles(qmin, qmax)
+
+        if norm is not None:
+            return norm
+
+        if diff:
+            if vmax is None:
+                high = None
+                for frame in frames:
+                    value = np.nanpercentile(np.abs(frame), q=qmax)
+                    if not np.isnan(value):
+                        high = value if high is None else max(high, value)
+                vmax = high
+            vmin = None if vmax is None else -vmax
+            return Normalize(vmin=vmin, vmax=vmax)
+
+        if log:
+            if vmin is None or vmax is None:
+                low = high = None
+                for frame in frames:
+                    positive = frame[frame > 0]
+                    if positive.size == 0:
+                        continue
+                    frame_min, frame_max = np.nanpercentile(positive, q=[qmin, qmax])
+                    low = frame_min if low is None else min(low, frame_min)
+                    high = frame_max if high is None else max(high, frame_max)
+                if low is None or high is None:
+                    return Normalize(vmin=1e-1, vmax=1e0)
+                vmin = low if vmin is None else vmin
+                vmax = high if vmax is None else vmax
+            if vmin <= 0 or vmax <= 0:
+                raise ValueError(f"Normalization range for log scale must be positive. Got vmin={vmin}, vmax={vmax}")
+            return LogNorm(vmin=vmin, vmax=vmax)
+
+        if vmin is None or vmax is None:
+            low = high = None
+            for frame in frames:
+                frame_min, frame_max = np.nanpercentile(frame, q=[qmin, qmax])
+                if not np.isnan(frame_min):
+                    low = frame_min if low is None else min(low, frame_min)
+                if not np.isnan(frame_max):
+                    high = frame_max if high is None else max(high, frame_max)
+            vmin = low if vmin is None else vmin
+            vmax = high if vmax is None else vmax
         return Normalize(vmin=vmin, vmax=vmax)
 
     def _process_data(self, data):
@@ -388,6 +462,42 @@ class Animation:
             return ret
 
     @staticmethod
+    def _frame_values(data, k):
+        """Extracts frame ``k`` as a numpy array, loading it lazily if possible."""
+        frame = data[k]
+        return np.asarray(getattr(frame, "values", frame))
+
+    @classmethod
+    def _iter_raw_frames(cls, data):
+        """Yields raw frames one at a time as numpy arrays."""
+        for k in range(len(data)):
+            yield cls._frame_values(data, k)
+
+    @classmethod
+    def _iter_upsampled_frames(cls, data, ratio=1):
+        """Yields temporally interpolated frames one at a time.
+
+        Streaming equivalent of :meth:`upsample`: at most two source frames
+        are held in memory at any time, so lazily-backed data (e.g. an xarray
+        DataArray opened from a netCDF/zarr store or backed by dask) is never
+        fully loaded, and the interpolated frames are never all materialized
+        at once.
+        """
+        n_raw = len(data)
+        if n_raw == 0:
+            raise ValueError("data must contain at least one frame.")
+        previous = cls._frame_values(data, 0)
+        for k in range(1, n_raw):
+            yield previous
+            current = cls._frame_values(data, k)
+            if ratio > 1:
+                delta = (current - previous) / ratio
+                for j in range(1, ratio):
+                    yield (previous + j * delta).astype(previous.dtype, copy=False)
+            previous = current
+        yield previous
+
+    @staticmethod
     def _process_title(title, upsample_ratio):
         if title is None:
             return
@@ -475,8 +585,10 @@ class Animation:
         these frames into a video file using FFmpeg.
 
         Args:
-            data (np.ndarray): A 3D numpy array where the first dimension is time
-                (or frame sequence) and the next two are spatial (y, x).
+            data (np.ndarray | xr.DataArray): A 3D array where the first dimension
+                is time (or frame sequence) and the next two are spatial (y, x).
+                Lazily-backed xarray DataArrays (netCDF/zarr stores, dask) are
+                streamed one time step at a time and never fully loaded in memory.
             path (str | Path): The output path for the generated video file.
                 Supported formats are avi, mkv, mov, and mp4.
             figsize (tuple[float, float], optional): Figure size (width, height)
@@ -525,7 +637,10 @@ class Animation:
             self.plot.aspect,
         )
 
-        norm = self.plot._norm(data, vmin, vmax, qmin, qmax, norm, log, diff)
+        if isinstance(data, np.ndarray):
+            norm = self.plot._norm(data, vmin, vmax, qmin, qmax, norm, log, diff)
+        else:
+            norm = self.plot._norm_streaming(self._iter_raw_frames(data), vmin, vmax, qmin, qmax, norm, log, diff)
         self._animate(
             data=data,
             path=path,
@@ -569,17 +684,16 @@ class Animation:
         fixed_frame: bool = False,
     ):
         titles = self._process_title(title, upsample_ratio)
-        data = self.upsample(data, ratio=upsample_ratio)
-        data_len = len(data)
+        n_raw = len(data)
+        data_len = (n_raw - 1) * upsample_ratio + 1 if n_raw > 1 else 1
 
         with TemporaryDirectory() as tempdir:
-            frame_paths = [Path(tempdir) / f"frame_{k:08d}.png" for k in range(data_len)]
-            args = []
-            for k in range(data_len):
-                frame_data = data[k]
-                arg_tuple = (
-                    frame_data,
-                    frame_paths[k],
+            # Generator consumed lazily by pool.imap: frames are interpolated
+            # and dispatched to workers on the fly, never all held in memory.
+            args = (
+                (
+                    frame,
+                    Path(tempdir) / f"frame_{k:08d}.png",
                     figsize,
                     titles[k] if titles and k < len(titles) else None,
                     cmap,
@@ -590,7 +704,8 @@ class Animation:
                     fixed_frame,
                     {"diff": diff},
                 )
-                args.append(arg_tuple)
+                for k, frame in enumerate(self._iter_upsampled_frames(data, ratio=upsample_ratio))
+            )
 
             cpu_total = cpu_count() or 1
             default_jobs = max(1, int((2 * cpu_total) / 3))
@@ -735,7 +850,10 @@ def animate(
 
     Args:
         da (xr.DataArray): Input DataArray with time as the animation dimension and x/y spatial dimensions.
-            2D inputs are not supported.
+            2D inputs are not supported. Lazily-backed DataArrays (netCDF/zarr stores, dask) are streamed
+            one time step at a time: the full dataset is never loaded in memory. Note that when relying on
+            quantile-based color scaling (no ``vmin``/``vmax``/``norm`` given), an extra streaming pass over
+            the data is required to compute the color range.
         path (str): Output path for the video file. Supported formats are avi, mkv,
             mov, and mp4.
         time_name (str, optional): Name of the time coordinate in `da`. If None,
@@ -806,7 +924,7 @@ def animate(
     field = da.name or da.attrs.get("long_name")
     titles = [f"{field} - {t}" for t in time]
     animation(
-        data=da.values,
+        data=da,
         path=output_path,
         title=titles,
         label=unit,

@@ -153,7 +153,9 @@ class QuiverAnimation(Animation):
 
         Args:
             u (xr.DataArray): 3D DataArray for the U-component of the vector field.
+                Lazily-backed DataArrays are streamed one time step at a time.
             v (xr.DataArray): 3D DataArray for the V-component of the vector field.
+                Lazily-backed DataArrays are streamed one time step at a time.
             path (str | Path): The output path for the generated video file.
             subsample (int, optional): Subsampling factor for quiver arrows. Defaults to 1.
             figsize (tuple, optional): Figure size (width, height) in inches.
@@ -176,9 +178,11 @@ class QuiverAnimation(Animation):
             timeout (int | str, optional): Timeout for the ffmpeg command. Defaults to "auto".
             **kwargs: Additional keyword arguments.
         """
-        magnitude = np.sqrt(u**2 + v**2)
-        norm = self.plot._norm(
-            magnitude.values,
+        magnitude_frames = (
+            np.sqrt(self._frame_values(u, k) ** 2 + self._frame_values(v, k) ** 2) for k in range(len(u))
+        )
+        norm = self.plot._norm_streaming(
+            magnitude_frames,
             vmin=vmin,
             vmax=vmax,
             qmin=qmin,
@@ -240,19 +244,20 @@ class QuiverAnimation(Animation):
         titles = self._process_title(title, upsample_ratio)
 
         u, v = data
-        u_upsampled = self.upsample(u.values, ratio=upsample_ratio)
-        v_upsampled = self.upsample(v.values, ratio=upsample_ratio)
-        data = (u_upsampled, v_upsampled)
-        data_len = len(u_upsampled)
+        n_raw = len(u)
+        data_len = (n_raw - 1) * upsample_ratio + 1 if n_raw > 1 else 1
+        frames = zip(
+            self._iter_upsampled_frames(u, ratio=upsample_ratio),
+            self._iter_upsampled_frames(v, ratio=upsample_ratio),
+        )
 
         with TemporaryDirectory() as tempdir:
-            frame_paths = [Path(tempdir) / f"frame_{k:08d}.png" for k in range(data_len)]
-            args = []
-            for k in range(data_len):
-                frame_data = (data[0][k], data[1][k])
-                arg_tuple = (
+            # Generator consumed lazily by pool.imap: frames are interpolated
+            # and dispatched to workers on the fly, never all held in memory.
+            args = (
+                (
                     frame_data,
-                    frame_paths[k],
+                    Path(tempdir) / f"frame_{k:08d}.png",
                     figsize,
                     titles[k] if titles and k < len(titles) else None,
                     cmap,
@@ -263,7 +268,8 @@ class QuiverAnimation(Animation):
                     fixed_frame,
                     kwargs,
                 )
-                args.append(arg_tuple)
+                for k, frame_data in enumerate(frames)
+            )
 
             cpu_total = cpu_count() or 1
             default_jobs = max(1, int((2 * cpu_total) / 3))
