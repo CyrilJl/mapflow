@@ -22,10 +22,10 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
 
     - name: Install dependencies
-      run: uv pip install --system -e ".[test]"
+      run: uv sync --extra test
 
     - name: Run pytest
-      run: pytest tests/ -vv -s
+      run: uv run pytest tests/ -vv -s
 
   format:
     runs-on: ubuntu-latest
