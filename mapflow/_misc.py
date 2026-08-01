@@ -1,5 +1,4 @@
-import subprocess
-import warnings
+from shutil import which
 
 import xarray as xr
 from pyproj import CRS
@@ -9,17 +8,9 @@ Y_NAME_CANDIDATES = ("y", "lat", "latitude")
 TIME_NAME_CANDIDATES = ("time", "t", "times")
 
 
-def check_ffmpeg():
-    """Checks if ffmpeg is available on the system and outputs a warning if not."""
-    try:
-        subprocess.run(
-            ["ffmpeg", "-version"],
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        warnings.warn("ffmpeg is not found. Some functionalities might be limited.")
+def check_ffmpeg() -> bool:
+    """Return whether an FFmpeg executable is available on ``PATH``."""
+    return which("ffmpeg") is not None
 
 
 def guess_coord_name(da_coords, candidates, provided_name, coord_type_for_error) -> str:
@@ -69,10 +60,7 @@ def process_crs(da, crs):
         CRS: A pyproj.CRS object.
     """
     if crs is None:
-        if "spatial_ref" in da.coords:
-            crs = da.spatial_ref.attrs.get("crs_wkt", 4326)
-        else:
-            crs = 4326
+        crs = da.spatial_ref.attrs.get("crs_wkt", 4326) if "spatial_ref" in da.coords else 4326
     return CRS.from_user_input(crs)
 
 
@@ -121,9 +109,9 @@ def check_da(da, time_name, x_name, y_name, crs):
     # Ensure time is the first dimension
     if da[x_name].ndim == 1 and da[y_name].ndim == 1:
         da = da.transpose(time_name, y_name, x_name)
-    elif list(da.dims)[0] != time_name:
+    elif next(iter(da.dims)) != time_name:
         current_dims = list(da.dims)
         current_dims.remove(time_name)
-        new_order = [time_name] + current_dims
+        new_order = [time_name, *current_dims]
         da = da.transpose(*new_order)
     return da, crs_

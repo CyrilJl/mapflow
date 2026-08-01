@@ -139,3 +139,10 @@ def test_norm_streaming_explicit_bounds_skip_data():
 
     norm = PlotModel._norm_streaming(frames(), 0.0, 1.0, 0.01, 99.9, None, log=False)
     assert (norm.vmin, norm.vmax) == (0.0, 1.0)
+
+
+def test_missing_ffmpeg_has_actionable_error(monkeypatch):
+    monkeypatch.setattr("mapflow._classic.check_ffmpeg", lambda: False)
+
+    with pytest.raises(RuntimeError, match=r"FFmpeg is required.*PATH"):
+        Animation._require_ffmpeg()

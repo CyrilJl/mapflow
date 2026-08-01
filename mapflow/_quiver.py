@@ -241,6 +241,7 @@ class QuiverAnimation(Animation):
         fixed_frame: bool = False,
         **kwargs,
     ):
+        self._require_ffmpeg()
         titles = self._process_title(title, upsample_ratio)
 
         u, v = data
@@ -249,6 +250,7 @@ class QuiverAnimation(Animation):
         frames = zip(
             self._iter_upsampled_frames(u, ratio=upsample_ratio),
             self._iter_upsampled_frames(v, ratio=upsample_ratio),
+            strict=True,
         )
 
         with TemporaryDirectory() as tempdir:
@@ -295,7 +297,7 @@ class QuiverAnimation(Animation):
 
     def _generate_quiver_frame(self, args):
         """Generates a quiver frame and saves it as a PNG."""
-        (u_frame, v_frame), frame_path, figsize, title, cmap, norm, label, dpi, pad_inches, fixed_frame, kwargs = args
+        (u_frame, v_frame), frame_path, figsize, title, cmap, norm, label, dpi, pad_inches, _fixed_frame, kwargs = args
         x_name = kwargs.get("x_name")
         y_name = kwargs.get("y_name")
         coords = {y_name: self.plot.y, x_name: self.plot.x}
@@ -433,10 +435,7 @@ def animate_quiver(
     unit = u.attrs.get("unit", None) or u.attrs.get("units", None)
     time_format = kwargs.get("time_format", "%Y-%m-%dT%H")
     time = u[actual_time_name].dt.strftime(time_format).values
-    if field_name is None:
-        titles = [f"{t}" for t in time]
-    else:
-        titles = [f"{field_name} - {t}" for t in time]
+    titles = [f"{t}" for t in time] if field_name is None else [f"{field_name} - {t}" for t in time]
 
     quiver_kwargs = kwargs.copy()
     quiver_kwargs["x_name"] = actual_x_name

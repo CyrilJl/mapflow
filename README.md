@@ -1,60 +1,69 @@
 <div align="center">
-<img src="_static/logo.svg" alt="mapflow logo" width="200" height="200">
+<img src="https://raw.githubusercontent.com/CyrilJl/mapflow/main/_static/logo.svg" alt="mapflow logo" width="200" height="200">
 
 # mapflow
 
-[![PyPI version](https://badge.fury.io/py/mapflow.svg)](https://badge.fury.io/py/mapflow)
+[![PyPI version](https://badge.fury.io/py/mapflow.svg)](https://pypi.org/project/mapflow/)
 [![Conda version](https://anaconda.org/conda-forge/mapflow/badges/version.svg)](https://anaconda.org/conda-forge/mapflow)
 [![CI](https://github.com/CyrilJl/mapflow/actions/workflows/CI.yaml/badge.svg)](https://github.com/CyrilJl/mapflow/actions/workflows/CI.yaml)
-[![Documentation Status](https://readthedocs.org/projects/mapflow/badge/?version=latest)](https://mapflow.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/mapflow/badge/?version=latest)](https://mapflow.readthedocs.io/en/latest/)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 </div>
 
-``mapflow`` transforms 3D ``xr.DataArray`` (time, y, x) into video files in one line of code.
-
-## Documentation
-
-The full documentation is available at [mapflow.readthedocs.io](https://mapflow.readthedocs.io).
+`mapflow` creates geographic plots and video animations directly from
+[`xarray.DataArray`](https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html) objects. It detects common
+coordinate names, understands CRS metadata, includes world borders, and streams lazily backed animation frames to
+keep memory use bounded.
 
 ## Installation
 
-```bash
-pip install mapflow
-```
-
-Or:
+Install the Python package from PyPI:
 
 ```bash
-conda install -c conda-forge -y mapflow
+python -m pip install mapflow
 ```
 
-## Features
+Or from conda-forge, which also installs FFmpeg:
 
-- **Automatic Coordinate Detection**: Identifies x, y, and time coordinates in xarray DataArrays, with fallback options for manual input if needed.  
-- **CRS Handling**: Detects the Coordinate Reference System (CRS) of the data or accepts user-defined CRS when unavailable.  
-- **Robust Colorbar**: Generates a colorbar that handles outliers effectively while allowing customization.  
-- **Built-in World Borders**: Includes default world border data but supports user-provided GeoSeries or GeoDataFrames.  
-- **Simplified Visualization**: The ``plot_da`` function provides a one-line alternative to cartopy for quick plotting.  
+```bash
+conda install -c conda-forge mapflow
+```
 
-## Animate
+Creating animations requires the `ffmpeg` executable on `PATH`. Static plots do not require FFmpeg.
+
+## Quick start
 
 ```python
 import xarray as xr
-from mapflow import animate
+
+from mapflow import animate, plot_da
 
 ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
-animate(da=ds['t2m'].isel(time=slice(120)), path='animation.mp4', video_width=1280, pad_inches=0.2)
+temperature = ds["t2m"]
+
+plot_da(temperature.isel(time=0))
+animate(temperature.isel(time=slice(120)), "temperature.mp4", video_width=1280)
 ```
 
-https://github.com/user-attachments/assets/3c84b380-62b2-4156-937f-5682a1c59457
+<img src="https://raw.githubusercontent.com/CyrilJl/mapflow/main/_static/plot_da.png" alt="Example mapflow plot" width="500">
 
-## Static plot
+The [documentation](https://mapflow.readthedocs.io) covers static plots, scalar animations, vector-field quiver
+plots, CRS handling, color normalization, and the reusable `PlotModel` and `Animation` classes.
 
-```python
-import xarray as xr
-from mapflow import plot_da
+## Development
 
-ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
-plot_da(da=ds['t2m'].isel(time=0))
+```bash
+git clone https://github.com/CyrilJl/mapflow.git
+cd mapflow
+uv sync --group dev
+uv run pytest
+uv run ruff check .
+uv run ruff format --check .
 ```
 
-<img src="https://raw.githubusercontent.com/CyrilJl/mapflow/main/_static/plot_da.png" alt="plot_da" width="500">
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution and release checks. Changes are documented in
+[CHANGELOG.md](CHANGELOG.md).
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE).

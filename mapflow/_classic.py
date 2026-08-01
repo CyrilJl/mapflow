@@ -20,6 +20,7 @@ from ._misc import (
     X_NAME_CANDIDATES,
     Y_NAME_CANDIDATES,
     check_da,
+    check_ffmpeg,
     guess_coord_name,
     process_crs,
 )
@@ -58,7 +59,7 @@ class PlotModel:
 
         self.crs = CRS.from_user_input(crs)
         if self.crs.is_geographic:
-            self.aspect = 1 / np.cos((self.y.mean() * np.pi / 180))
+            self.aspect = 1 / np.cos(self.y.mean() * np.pi / 180)
         else:
             self.aspect = 1
         if self.x.ndim == 1:
@@ -506,7 +507,15 @@ class Animation:
         elif isinstance(title, (list, tuple)):
             return np.repeat(title, upsample_ratio).tolist()
         else:
-            raise ValueError("Title must be a string or a list of strings.")
+            raise TypeError("Title must be a string or a list of strings.")
+
+    @staticmethod
+    def _require_ffmpeg():
+        if not check_ffmpeg():
+            raise RuntimeError(
+                "FFmpeg is required to create animations but was not found on PATH. "
+                "Install FFmpeg and make sure the 'ffmpeg' executable is available."
+            )
 
     @staticmethod
     def _resolve_figsize(figsize, dpi, video_width, x, y, aspect):
@@ -521,10 +530,7 @@ class Animation:
         if figsize is None:
             x_span = np.nanmax(x) - np.nanmin(x)
             y_span = np.nanmax(y) - np.nanmin(y)
-            if x_span > 0 and y_span > 0:
-                height_in = width_in * (y_span / x_span) * aspect
-            else:
-                height_in = width_in
+            height_in = width_in * (y_span / x_span) * aspect if x_span > 0 and y_span > 0 else width_in
             figsize = (width_in, height_in)
         return figsize, True
 
@@ -683,6 +689,7 @@ class Animation:
         video_width: int | None = None,
         fixed_frame: bool = False,
     ):
+        self._require_ffmpeg()
         titles = self._process_title(title, upsample_ratio)
         n_raw = len(data)
         data_len = (n_raw - 1) * upsample_ratio + 1 if n_raw > 1 else 1
@@ -731,7 +738,7 @@ class Animation:
 
     def _generate_frame(self, args):
         """Generates a frame and saves it as a PNG."""
-        data_frame, frame_path, figsize, title, cmap, norm, label, dpi, pad_inches, fixed_frame, kwargs = args
+        data_frame, frame_path, figsize, title, cmap, norm, label, dpi, pad_inches, _fixed_frame, kwargs = args
         self.plot(
             data=data_frame,
             figsize=figsize,
@@ -803,14 +810,7 @@ class Animation:
     def _create_video(tempdir, path, fps, timeout, crf=20, video_width: int | None = None):
         cmd = Animation._build_ffmpeg_cmd(tempdir, path, fps, crf=crf, video_width=video_width)
         try:
-            result = subprocess.run(
-                cmd,
-                check=True,
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=timeout,
-            )
+            result = subprocess.run(cmd, check=True, text=True, capture_output=True, timeout=timeout)
             if result.stdout:
                 print(result.stdout)
         except subprocess.CalledProcessError as e:

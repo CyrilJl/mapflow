@@ -4,22 +4,83 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mapflow"
-version = "0.3.0"
-description = "A Python library to export xarray.DataArray as video files"
-authors = [{ name = "Cyril Joly" }]
-license = { text = "MIT" }
+version = "0.3.1"
+description = "Create geographic plots and animations from xarray DataArrays"
 readme = "README.md"
 requires-python = ">=3.10"
-
-
-dependencies = ["xarray", "matplotlib", "geopandas", "tqdm"]
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Cyril Joly" }]
+keywords = ["animation", "geospatial", "matplotlib", "visualization", "xarray"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = [
+    "geopandas",
+    "matplotlib",
+    "numpy",
+    "pyproj",
+    "shapely",
+    "tqdm",
+    "xarray",
+]
 
 [project.optional-dependencies]
-test = ["netcdf4", "pytest", "rioxarray", "pooch"]
+test = ["netcdf4", "pytest>=8"]
+docs = [
+    "sphinx>=7",
+    "sphinxawesome-theme",
+    "sphinxcontrib-video",
+]
+
+[dependency-groups]
+dev = [
+    "build",
+    "netcdf4",
+    "pytest>=8",
+    "ruff",
+    "sphinx>=7",
+    "sphinxawesome-theme",
+    "sphinxcontrib-video",
+    "twine",
+]
 
 [project.urls]
-Homepage = "https://github.com/CyrilJl/mapflow"
 Documentation = "https://mapflow.readthedocs.io"
+Homepage = "https://github.com/CyrilJl/mapflow"
+Issues = "https://github.com/CyrilJl/mapflow/issues"
+Source = "https://github.com/CyrilJl/mapflow"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/mapflow",
+    "/tests",
+    "/CHANGELOG.md",
+    "/CONTRIBUTING.md",
+    "/LICENSE",
+    "/README.md",
+    "/pyproject.toml",
+]
+exclude = ["/.gitignore"]
+
+[tool.pytest.ini_options]
+addopts = ["--strict-config", "--strict-markers", "-ra"]
+testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["B", "E4", "E7", "E9", "F", "I", "RUF", "SIM", "UP"]

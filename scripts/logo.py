@@ -1,7 +1,7 @@
 import math
 import random
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 
 def generate_random_rotating_stars_svg(
@@ -42,7 +42,7 @@ def generate_random_rotating_stars_svg(
     
 """
 
-    for radius, color in zip(radii, colors):
+    for radius, color in zip(radii, colors, strict=True):
         # Angle initial aléatoire
         initial_angle = random.uniform(0, 360)
         # Durée aléatoire entre min et max
@@ -58,10 +58,7 @@ def generate_random_rotating_stars_svg(
         star_path = []
         for i in range(8):
             angle = math.radians(i * 45)
-            if i % 2 == 0:
-                r = outer_radius
-            else:
-                r = inner_radius
+            r = outer_radius if i % 2 == 0 else inner_radius
             star_path.append((x + r * math.cos(angle), y + r * math.sin(angle)))
 
         star_path_str = "M" + " L".join(f"{px:.2f},{py:.2f}" for px, py in star_path) + " Z"
