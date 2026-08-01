@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mapflow"
-version = "0.3.0"
+version = "0.3.1"
 description = "Create geographic plots and animations from xarray DataArrays"
 readme = "README.md"
 requires-python = ">=3.10"

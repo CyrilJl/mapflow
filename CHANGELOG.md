@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-08-02
+
 ### Changed
 
 - Improved project metadata, distribution contents, CI coverage, and release security.
@@ -19,5 +21,6 @@ All notable changes to this project are documented here. The format follows
 - Streamed lazy and temporally interpolated frames instead of materializing complete animations in memory.
 - Added configurable target video width.
 
-[Unreleased]: https://github.com/CyrilJl/mapflow/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/CyrilJl/mapflow/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/CyrilJl/mapflow/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/CyrilJl/mapflow/releases/tag/v0.3.0
