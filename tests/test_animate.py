@@ -5,7 +5,6 @@ from tempfile import TemporaryDirectory
 import geopandas as gpd
 import numpy as np
 import pytest
-import rioxarray as rio  # noqa: F401
 import xarray as xr
 from shapely.geometry import box
 
@@ -13,24 +12,10 @@ from mapflow import animate, animate_quiver
 
 
 @pytest.fixture
-def air_data():
-    ds = xr.tutorial.open_dataset("air_temperature")
-    return ds["air"].isel(time=slice(0, 8))
-
-
-@pytest.fixture
-def air_temperature_gradient_data() -> xr.Dataset:
-    ds = xr.tutorial.load_dataset("air_temperature_gradient").isel(time=slice(0, 12))
-    ds.rio.set_spatial_dims("lon", "lat", inplace=True)
-    ds.rio.write_crs("EPSG:4326", inplace=True)
-    return ds
-
-
-@pytest.fixture
 def air_data_2d_coordinates():
-    ntime = 24
-    ny = 50
-    nx = 50
+    ntime = 8
+    ny = 16
+    nx = 16
     # Create a basic rectilinear grid first
     x = np.linspace(-10, 10, nx)
     y = np.linspace(-10, 10, ny)
@@ -42,8 +27,8 @@ def air_data_2d_coordinates():
     lat = yy + 1.5 * np.cos(xx / 4)  # latitude varies with x position
 
     # Create random data
-    time_coords = np.arange(np.datetime64("2020-01-01"), np.datetime64("2020-01-01") + ntime)
-    data = np.random.rand(ntime, ny, nx)
+    time_coords = np.arange("2020-01-01", "2020-01-09", dtype="datetime64[D]")
+    data = np.random.default_rng(42).random((ntime, ny, nx))
 
     # Create DataArray
     da = xr.DataArray(
@@ -88,7 +73,7 @@ def get_video_duration(path):
         "default=noprint_wrappers=1:nokey=1",
         path,
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, check=True, capture_output=True, text=True)
     return float(result.stdout)
 
 
@@ -105,7 +90,7 @@ def get_video_width(path):
         "default=noprint_wrappers=1:nokey=1",
         path,
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, check=True, capture_output=True, text=True)
     return int(result.stdout)
 
 
@@ -177,18 +162,17 @@ def test_animate_duration_with_fps(air_data):
 
 
 def test_animate_conflicting_args(air_data):
-    with TemporaryDirectory() as tmpdir:
-        with pytest.raises(ValueError):
-            animate(
-                da=air_data,
-                path=f"{tmpdir}/test.mp4",
-                x_name="lon",
-                y_name="lat",
-                fps=24,
-                upsample_ratio=2,
-                duration=5,
-                verbose=True,
-            )
+    with TemporaryDirectory() as tmpdir, pytest.raises(ValueError):
+        animate(
+            da=air_data,
+            path=f"{tmpdir}/test.mp4",
+            x_name="lon",
+            y_name="lat",
+            fps=24,
+            upsample_ratio=2,
+            duration=5,
+            verbose=True,
+        )
 
 
 def test_animate_quiver(air_temperature_gradient_data):
