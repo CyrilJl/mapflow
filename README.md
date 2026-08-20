@@ -33,16 +33,32 @@ Creating animations requires the `ffmpeg` executable on `PATH`. Static plots do 
 
 ## Quick start
 
+### Animation
+
 ```python
 import xarray as xr
 
-from mapflow import animate, plot_da
+from mapflow import animate
+
+ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
+temperature = ds["t2m"]
+
+animate(temperature.isel(time=slice(120)), "temperature.mp4", video_width=1280)
+```
+
+https://github.com/user-attachments/assets/3c84b380-62b2-4156-937f-5682a1c59457
+
+### Static plot
+
+```python
+import xarray as xr
+
+from mapflow import plot_da
 
 ds = xr.tutorial.open_dataset("era5-2mt-2019-03-uk.grib")
 temperature = ds["t2m"]
 
 plot_da(temperature.isel(time=0))
-animate(temperature.isel(time=slice(120)), "temperature.mp4", video_width=1280)
 ```
 
 <img src="https://raw.githubusercontent.com/CyrilJl/mapflow/main/_static/plot_da.png" alt="Example mapflow plot" width="500">
