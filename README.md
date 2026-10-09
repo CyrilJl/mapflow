@@ -65,21 +65,3 @@ plot_da(temperature.isel(time=0))
 
 The [documentation](https://mapflow.readthedocs.io) covers static plots, scalar animations, vector-field quiver
 plots, CRS handling, color normalization, and the reusable `PlotModel` and `Animation` classes.
-
-## Development
-
-```bash
-git clone https://github.com/CyrilJl/mapflow.git
-cd mapflow
-uv sync --group dev
-uv run pytest
-uv run ruff check .
-uv run ruff format --check .
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution and release checks. Changes are documented in
-[CHANGELOG.md](CHANGELOG.md).
-
-## License
-
-Licensed under the [Apache License 2.0](LICENSE).
